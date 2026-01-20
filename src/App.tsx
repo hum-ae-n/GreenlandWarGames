@@ -22,6 +22,7 @@ import {
   NuclearModal,
 } from './components/CrisisModal';
 import { Tutorial, HelpButton } from './components/Tutorial';
+import { PopupManager } from './components/LeaderPopup';
 import { LeaderId } from './components/PixelArt';
 import { getChiptuneEngine } from './audio/ChiptuneEngine';
 import './App.css';
@@ -663,6 +664,20 @@ function App() {
 
       {/* Help Button */}
       <HelpButton onClick={() => setShowTutorial(true)} />
+
+      {/* Random Leader Popups (Civ V Style) */}
+      <PopupManager
+        context={{
+          playerFaction: gameState.playerFaction,
+          turn: gameState.turn,
+          playerVP: gameState.factions[gameState.playerFaction].victoryPoints,
+          globalTension: gameState.relations
+            .filter(r => r.factions.includes(gameState.playerFaction))
+            .reduce((sum, r) => sum + r.tensionValue, 0),
+        }}
+        enabled={!showTutorial && !showLeaderDialog && !gameState.activeCrisis && !gameState.combatResult}
+        excludeLeaders={[getLeaderForFaction(gameState.playerFaction) as LeaderId].filter(Boolean)}
+      />
     </div>
   );
 }

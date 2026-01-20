@@ -1,0 +1,465 @@
+/* Game Over Screen */
+.game-over-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.5s ease;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.game-over-screen.victory {
+  background: linear-gradient(135deg, #1a3a1a 0%, #0a1a0a 100%);
+}
+
+.game-over-screen.defeat {
+  background: linear-gradient(135deg, #3a1a1a 0%, #1a0a0a 100%);
+}
+
+.game-over-screen.nuclear-ending {
+  background: #000;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.game-over-content {
+  max-width: 700px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  z-index: 10;
+}
+
+/* Victory Banner */
+.victory-banner {
+  text-align: center;
+  animation: slideDown 0.6s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.victory-banner h1 {
+  font-size: 48px;
+  margin: 0;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.game-over-screen.victory .victory-banner h1 {
+  color: #ffd700;
+  animation: pulse 2s infinite;
+}
+
+.game-over-screen.defeat .victory-banner h1 {
+  color: #ff4444;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.winner-announcement {
+  margin-top: 8px;
+}
+
+.winner-announcement h2 {
+  font-size: 28px;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.winner-announcement p {
+  font-size: 16px;
+  color: #888;
+  margin: 4px 0 0;
+}
+
+/* Winner Leader */
+.winner-leader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  animation: scaleIn 0.5s ease 0.3s both;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.winner-leader-info {
+  text-align: center;
+}
+
+.winner-leader-info .leader-name {
+  display: block;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.winner-leader-info .leader-title {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* Speaker Bubble */
+.speaker-bubble {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #444;
+  border-radius: 12px;
+  padding: 16px;
+  max-width: 500px;
+  width: 100%;
+  animation: fadeSlide 0.3s ease;
+}
+
+@keyframes fadeSlide {
+  from { transform: translateX(-10px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.speaker-portrait {
+  flex-shrink: 0;
+}
+
+.speaker-content {
+  flex: 1;
+}
+
+.speaker-name {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  color: #8ab4f8;
+  margin-bottom: 8px;
+}
+
+.speaker-message {
+  color: #e0e0e0;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
+
+/* All Leaders Row */
+.all-leaders-row {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.all-leaders-row h3 {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.leaders-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.leader-cell {
+  position: relative;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.leader-cell:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.leader-cell.winner {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.leader-cell.loser {
+  border-color: #ff4444;
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.leader-cell.speaking {
+  border-color: #8ab4f8;
+  box-shadow: 0 0 15px rgba(138, 180, 248, 0.4);
+}
+
+.reaction-emoji {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  font-size: 16px;
+  background: #1a1a1a;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+/* Final Stats */
+.final-stats {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.final-stats h3 {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  margin: 0 0 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.standings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.standing-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.standing-row.player-row {
+  border: 1px solid #4a8a5c;
+  background: rgba(74, 138, 92, 0.1);
+}
+
+.standing-row .rank {
+  font-size: 24px;
+}
+
+.standing-row .faction-info {
+  flex: 1;
+}
+
+.standing-row .faction-name {
+  display: block;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.standing-row .faction-stats {
+  display: block;
+  color: #888;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* Game Summary */
+.game-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.summary-stat {
+  text-align: center;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  min-width: 100px;
+}
+
+.summary-stat .stat-label {
+  display: block;
+  color: #666;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.summary-stat .stat-value {
+  display: block;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 4px 0;
+}
+
+.summary-stat .stat-change {
+  display: block;
+  color: #ff6b6b;
+  font-size: 11px;
+}
+
+/* Restart Button */
+.restart-btn {
+  padding: 16px 48px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, #4a8a5c 0%, #3a7a4c 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.restart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 138, 92, 0.4);
+}
+
+/* Nuclear Ending */
+.nuclear-ending .game-over-content {
+  text-align: center;
+}
+
+.nuclear-flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  animation: flash 2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.nuclear-icon {
+  font-size: 80px;
+  animation: glow 2s infinite;
+}
+
+@keyframes glow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.5) drop-shadow(0 0 20px #ff0); }
+}
+
+.nuclear-ending h1 {
+  color: #ff4444;
+  font-size: 36px;
+  text-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+}
+
+.nuclear-subtitle {
+  color: #888;
+  font-size: 18px;
+}
+
+.devastation-report {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid #ff4444;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.devastation-report p {
+  color: #ff6b6b;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.leader-reactions-grid.nuclear {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.leader-reaction.deceased {
+  position: relative;
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.leader-reaction .leader-status {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  font-size: 24px;
+}
+
+/* Confetti */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  width: 10px;
+  height: 10px;
+  animation: confettiFall 4s linear infinite;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti-piece:nth-child(odd) {
+  border-radius: 50%;
+}
+
+.confetti-piece:nth-child(even) {
+  border-radius: 2px;
+}
