@@ -1,0 +1,153 @@
+// Core game types for Arctic Dominion
+
+export type FactionId = 'usa' | 'russia' | 'china' | 'canada' | 'denmark' | 'norway' | 'nato' | 'indigenous';
+
+export type ZoneType = 'territorial' | 'eez' | 'continental_shelf' | 'international' | 'chokepoint';
+
+export type TensionLevel = 'cooperation' | 'competition' | 'confrontation' | 'crisis' | 'conflict';
+
+export type Season = 'winter' | 'summer';
+
+export type ActionCategory = 'diplomatic' | 'economic' | 'military' | 'covert';
+
+export type GamePhase = 'events' | 'planning' | 'action' | 'resolution' | 'assessment';
+
+export interface Resources {
+  influencePoints: number;      // Political capital
+  economicOutput: number;       // GDP-derived funding
+  icebreakerCapacity: number;   // Movement freedom in ice
+  militaryReadiness: number;    // Force projection (0-100)
+  legitimacy: number;           // International/domestic support (0-100)
+}
+
+export interface Faction {
+  id: FactionId;
+  name: string;
+  shortName: string;
+  color: string;
+  resources: Resources;
+  isPlayable: boolean;
+  description: string;
+  specialMechanic: string;
+  controlledZones: string[];    // Zone IDs
+  victoryPoints: number;
+}
+
+export interface HexCoord {
+  q: number;  // Column
+  r: number;  // Row
+}
+
+export interface MapZone {
+  id: string;
+  name: string;
+  type: ZoneType;
+  hex: HexCoord;
+  controller: FactionId | null;
+  contestedBy: FactionId[];
+  resources: {
+    oil: number;          // 0-10 richness
+    gas: number;
+    minerals: number;
+    fish: number;
+    shipping: number;     // Strategic shipping value
+  };
+  iceMonths: number;      // Months per year with ice cover (0-12)
+  militaryPresence: Partial<Record<FactionId, number>>;
+}
+
+export interface BilateralRelation {
+  factions: [FactionId, FactionId];
+  tensionLevel: TensionLevel;
+  tensionValue: number;   // 0-100 within current level
+  treaties: string[];
+  incidents: string[];
+}
+
+export interface GameAction {
+  id: string;
+  name: string;
+  category: ActionCategory;
+  cost: Partial<Resources>;
+  requirements: {
+    minLegitimacy?: number;
+    controlsZone?: string;
+    tensionMax?: TensionLevel;
+  };
+  effects: {
+    targetZone?: string;
+    targetFaction?: FactionId;
+    resourceChanges?: Partial<Resources>;
+    tensionChange?: number;
+    zoneControl?: boolean;
+  };
+  description: string;
+}
+
+export interface GameEvent {
+  id: string;
+  name: string;
+  description: string;
+  turn: number | 'random';
+  probability?: number;
+  effects: {
+    globalIceMelt?: number;
+    factionEffects?: Partial<Record<FactionId, Partial<Resources>>>;
+    zoneEffects?: { zoneId: string; changes: Partial<MapZone> }[];
+    tensionEffects?: { factions: [FactionId, FactionId]; change: number }[];
+  };
+  choices?: {
+    text: string;
+    effects: GameEvent['effects'];
+  }[];
+}
+
+export interface TurnRecord {
+  turn: number;
+  year: number;
+  season: Season;
+  events: GameEvent[];
+  actions: { faction: FactionId; action: GameAction }[];
+  stateSnapshot: {
+    factions: Record<FactionId, Faction>;
+    zones: Record<string, MapZone>;
+    relations: BilateralRelation[];
+  };
+}
+
+export interface GameState {
+  turn: number;
+  year: number;
+  season: Season;
+  phase: GamePhase;
+  playerFaction: FactionId;
+  factions: Record<FactionId, Faction>;
+  zones: Record<string, MapZone>;
+  relations: BilateralRelation[];
+  globalIceExtent: number;      // 0-100, decreases over time
+  history: TurnRecord[];
+  pendingEvents: GameEvent[];
+  availableActions: GameAction[];
+  selectedAction: GameAction | null;
+  gameOver: boolean;
+  winner: FactionId | null;
+}
+
+export interface VictoryCondition {
+  type: 'hegemonic' | 'economic' | 'stability' | 'survival';
+  faction: FactionId;
+  description: string;
+  checkCondition: (state: GameState) => boolean;
+  progress: (state: GameState) => number;  // 0-100
+}
+
+// Polar projection utilities
+export interface PolarCoord {
+  latitude: number;   // 60-90 for Arctic
+  longitude: number;  // -180 to 180
+}
+
+export interface ScreenCoord {
+  x: number;
+  y: number;
+}
