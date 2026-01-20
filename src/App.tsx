@@ -21,6 +21,7 @@ import {
   EnvironmentalEventPopup,
   NuclearModal,
 } from './components/CrisisModal';
+import { Tutorial, HelpButton } from './components/Tutorial';
 import { LeaderId } from './components/PixelArt';
 import { getChiptuneEngine } from './audio/ChiptuneEngine';
 import './App.css';
@@ -45,6 +46,12 @@ function App() {
   const [showEnvironmentalEvent, setShowEnvironmentalEvent] = useState(false);
   const [showNuclearModal, setShowNuclearModal] = useState(false);
   const [seenAchievements, setSeenAchievements] = useState<Set<string>>(new Set());
+
+  // Tutorial state
+  const [showTutorial, setShowTutorial] = useState(true);
+  const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
+    return localStorage.getItem('arctic_dominion_tutorial_seen') === 'true';
+  });
 
   // Handle window resize
   useEffect(() => {
@@ -132,11 +139,16 @@ function App() {
     setGameState(state);
     setScreen('playing');
 
-    // Show greeting from a rival leader
-    const rivalLeader = factionId === 'usa' ? 'putin' :
-                        factionId === 'russia' ? 'trump' : 'putin';
-    setShowLeaderDialog({ leaderId: rivalLeader as LeaderId, context: 'greeting' });
-  }, []);
+    // Show tutorial for new players, then show greeting
+    if (!hasSeenTutorial) {
+      setShowTutorial(true);
+    } else {
+      // Show greeting from a rival leader
+      const rivalLeader = factionId === 'usa' ? 'putin' :
+                          factionId === 'russia' ? 'trump' : 'putin';
+      setShowLeaderDialog({ leaderId: rivalLeader as LeaderId, context: 'greeting' });
+    }
+  }, [hasSeenTutorial]);
 
   const handleExecuteAction = useCallback((
     action: GameAction,
@@ -633,6 +645,24 @@ function App() {
           onResolve={handleNuclearResolve}
         />
       )}
+
+      {/* Tutorial */}
+      {showTutorial && (
+        <Tutorial onComplete={() => {
+          setShowTutorial(false);
+          if (!hasSeenTutorial) {
+            setHasSeenTutorial(true);
+            localStorage.setItem('arctic_dominion_tutorial_seen', 'true');
+            // Show greeting after tutorial
+            const rivalLeader = gameState.playerFaction === 'usa' ? 'putin' :
+                                gameState.playerFaction === 'russia' ? 'trump' : 'putin';
+            setShowLeaderDialog({ leaderId: rivalLeader as LeaderId, context: 'greeting' });
+          }
+        }} />
+      )}
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setShowTutorial(true)} />
     </div>
   );
 }
