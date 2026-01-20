@@ -969,6 +969,8 @@ body {
 .dialog-text {
   font-size: 0.875rem;
   line-height: 1.6;
+  color: #e0e0e0;
+  min-height: 40px;
 }
 
 .cursor {

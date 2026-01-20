@@ -15,13 +15,15 @@ export const LeaderDialog: React.FC<LeaderDialogProps> = ({
   onDismiss,
   autoClose,
 }) => {
-  const [message, setMessage] = useState('');
+  const leader = LEADERS[leaderId];
+
+  // Initialize message immediately to avoid race condition
+  const [message, setMessage] = useState(() => getLeaderReaction(leaderId, context));
   const [visible, setVisible] = useState(true);
   const [typedText, setTypedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
 
-  const leader = LEADERS[leaderId];
-
+  // Update message if leaderId or context changes
   useEffect(() => {
     const newMessage = getLeaderReaction(leaderId, context);
     setMessage(newMessage);
@@ -31,6 +33,11 @@ export const LeaderDialog: React.FC<LeaderDialogProps> = ({
 
   // Typewriter effect
   useEffect(() => {
+    // Don't run if message is empty
+    if (!message || message.length === 0) {
+      return;
+    }
+
     if (!isTyping || typedText.length >= message.length) {
       setIsTyping(false);
       return;

@@ -91,6 +91,85 @@ export const ArcticMap: React.FC<ArcticMapProps> = ({
       ctx.stroke();
     }
 
+    // Draw landmasses (simplified Arctic coastlines for context)
+    // Uses polar azimuthal projection: angle = longitude, radius = 90 - latitude
+    const drawLandmass = (coords: { lat: number; lon: number }[], fillColor: string, label?: string) => {
+      ctx.beginPath();
+      coords.forEach((coord, i) => {
+        const radius = (90 - coord.lat) * config.scale;
+        const angle = (coord.lon - 90) * Math.PI / 180;
+        const x = config.centerX + radius * Math.cos(angle);
+        const y = config.centerY + radius * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+      ctx.strokeStyle = '#3a5a3c';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Add label
+      if (label && coords.length > 0) {
+        const midIdx = Math.floor(coords.length / 2);
+        const mid = coords[midIdx];
+        const radius = (90 - mid.lat) * config.scale;
+        const angle = (mid.lon - 90) * Math.PI / 180;
+        ctx.fillStyle = '#ffffff80';
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, config.centerX + radius * Math.cos(angle), config.centerY + radius * Math.sin(angle));
+      }
+    };
+
+    // Russia (northern coastline)
+    drawLandmass([
+      { lat: 70, lon: 30 }, { lat: 72, lon: 50 }, { lat: 75, lon: 60 }, { lat: 77, lon: 70 },
+      { lat: 76, lon: 90 }, { lat: 73, lon: 110 }, { lat: 71, lon: 130 }, { lat: 70, lon: 150 },
+      { lat: 68, lon: 170 }, { lat: 66, lon: 175 }, { lat: 65, lon: 180 }, { lat: 65, lon: 170 },
+      { lat: 60, lon: 150 }, { lat: 60, lon: 120 }, { lat: 60, lon: 90 }, { lat: 60, lon: 60 },
+      { lat: 60, lon: 30 },
+    ], '#2a3a2a', 'RUSSIA');
+
+    // Alaska
+    drawLandmass([
+      { lat: 71, lon: -165 }, { lat: 70, lon: -160 }, { lat: 68, lon: -150 }, { lat: 66, lon: -145 },
+      { lat: 64, lon: -142 }, { lat: 60, lon: -140 }, { lat: 60, lon: -165 }, { lat: 65, lon: -168 },
+    ], '#2a3528', 'ALASKA');
+
+    // Canada (northern territories)
+    drawLandmass([
+      { lat: 70, lon: -130 }, { lat: 72, lon: -120 }, { lat: 75, lon: -100 }, { lat: 76, lon: -90 },
+      { lat: 75, lon: -80 }, { lat: 72, lon: -70 }, { lat: 68, lon: -65 }, { lat: 60, lon: -65 },
+      { lat: 60, lon: -130 }, { lat: 65, lon: -135 },
+    ], '#2a3025', 'CANADA');
+
+    // Greenland
+    drawLandmass([
+      { lat: 84, lon: -30 }, { lat: 82, lon: -20 }, { lat: 78, lon: -18 }, { lat: 72, lon: -22 },
+      { lat: 68, lon: -30 }, { lat: 65, lon: -40 }, { lat: 60, lon: -45 }, { lat: 60, lon: -52 },
+      { lat: 65, lon: -55 }, { lat: 70, lon: -55 }, { lat: 76, lon: -60 }, { lat: 80, lon: -55 },
+      { lat: 83, lon: -40 },
+    ], '#35403a', 'GREENLAND');
+
+    // Norway/Scandinavia
+    drawLandmass([
+      { lat: 71, lon: 25 }, { lat: 70, lon: 20 }, { lat: 68, lon: 15 }, { lat: 65, lon: 12 },
+      { lat: 60, lon: 5 }, { lat: 60, lon: 25 }, { lat: 65, lon: 25 },
+    ], '#2a3528', 'NORWAY');
+
+    // Svalbard
+    drawLandmass([
+      { lat: 80, lon: 10 }, { lat: 79, lon: 15 }, { lat: 77, lon: 20 }, { lat: 76, lon: 15 },
+      { lat: 77, lon: 10 }, { lat: 79, lon: 8 },
+    ], '#353530', 'SVALBARD');
+
+    // Iceland (partial, at edge)
+    drawLandmass([
+      { lat: 66, lon: -18 }, { lat: 64, lon: -14 }, { lat: 64, lon: -22 }, { lat: 66, lon: -24 },
+    ], '#303030', 'ICELAND');
+
     // Draw ice extent circle
     const iceRadius = (90 - 60 - (100 - gameState.globalIceExtent) * 0.3) * config.scale;
     ctx.strokeStyle = '#ffffff40';

@@ -1,0 +1,217 @@
+/* Tutorial Overlay */
+.tutorial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.tutorial-modal {
+  background: linear-gradient(180deg, #1a2744 0%, #0f1a2e 100%);
+  border: 2px solid #3a6a9c;
+  border-radius: 12px;
+  max-width: 550px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(58, 106, 156, 0.2);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.tutorial-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #2a4a6c;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.tutorial-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.tutorial-header h2 {
+  flex: 1;
+  margin: 0;
+  color: #8ab4f8;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.tutorial-progress {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tutorial-content {
+  padding: 24px;
+  min-height: 180px;
+}
+
+.tutorial-content p {
+  color: #c0c8d0;
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0 0 12px 0;
+}
+
+.tutorial-content p:last-child {
+  margin-bottom: 0;
+}
+
+.tutorial-content p:empty {
+  height: 8px;
+}
+
+.tutorial-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 24px 16px;
+}
+
+.tutorial-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2a4a6c;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tutorial-dots .dot:hover {
+  background: #4a6a8c;
+}
+
+.tutorial-dots .dot.active {
+  background: #8ab4f8;
+  transform: scale(1.2);
+}
+
+.tutorial-dots .dot.completed {
+  background: #4a8a5c;
+}
+
+.tutorial-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid #2a4a6c;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.tutorial-nav {
+  display: flex;
+  gap: 12px;
+}
+
+.tutorial-btn {
+  padding: 10px 20px;
+  border: 1px solid #3a6a9c;
+  border-radius: 6px;
+  background: transparent;
+  color: #8ab4f8;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tutorial-btn:hover:not(:disabled) {
+  background: rgba(58, 106, 156, 0.2);
+  border-color: #5a8abc;
+}
+
+.tutorial-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tutorial-btn.primary {
+  background: linear-gradient(135deg, #2a5a8c 0%, #1a4a7c 100%);
+  border-color: #3a7abc;
+  color: white;
+}
+
+.tutorial-btn.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3a6a9c 0%, #2a5a8c 100%);
+  box-shadow: 0 4px 15px rgba(58, 106, 156, 0.4);
+}
+
+.tutorial-btn.secondary {
+  border-color: #444;
+  color: #888;
+}
+
+.tutorial-btn.secondary:hover {
+  border-color: #666;
+  color: #aaa;
+}
+
+/* Help Button */
+.help-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2a5a8c 0%, #1a4a7c 100%);
+  border: 2px solid #3a7abc;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.help-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(58, 106, 156, 0.5);
+}
+
+/* Quick Tips (shown during gameplay) */
+.quick-tips {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 8px 12px;
+  max-width: 200px;
+  z-index: 50;
+}
+
+.quick-tips p {
+  color: #888;
+  font-size: 11px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.quick-tips strong {
+  color: #8ab4f8;
+}
