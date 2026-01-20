@@ -1,6 +1,13 @@
 import { GameState, GameEvent, FactionId } from '../types/game';
-import { calculateVictoryPoints } from './state';
+import { calculateVictoryPoints, updateTension } from './state';
 import { GAME_ACTIONS, executeAction } from './actions';
+import {
+  generateCrisis,
+  generateResourceDiscovery,
+  generateEnvironmentalEvent,
+  checkNuclearEscalation,
+  ACHIEVEMENTS,
+} from './drama';
 
 // Random events that can occur
 const RANDOM_EVENTS: GameEvent[] = [
@@ -201,6 +208,99 @@ export const advanceTurn = (state: GameState): void => {
   // AI actions for non-player factions
   runAITurns(state);
 
+  // === DRAMA SYSTEM ===
+
+  // Generate crisis events (if none active)
+  if (!state.activeCrisis) {
+    const crisis = generateCrisis(state);
+    if (crisis) {
+      state.activeCrisis = {
+        id: crisis.id,
+        type: crisis.type,
+        title: crisis.title,
+        description: crisis.description,
+        instigator: crisis.instigator,
+        targetZone: crisis.targetZone,
+        urgency: crisis.urgency,
+        turnsToRespond: crisis.turnsToRespond,
+        choices: crisis.choices.map(c => ({
+          id: c.id,
+          label: c.label,
+          description: c.description,
+          consequences: c.consequences as Record<string, unknown>,
+          successChance: c.successChance,
+          failureConsequences: c.failureConsequences as Record<string, unknown>,
+        })),
+      };
+      state.notifications.push({
+        id: `notif_crisis_${Date.now()}`,
+        type: 'crisis',
+        title: crisis.title,
+        description: 'A crisis demands your attention!',
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  // Generate resource discoveries
+  const discovery = generateResourceDiscovery(state);
+  if (discovery) {
+    state.pendingDiscovery = {
+      id: discovery.id,
+      name: discovery.name,
+      description: discovery.description,
+      zoneId: discovery.zoneId,
+      bonus: discovery.bonus,
+      economicBonus: discovery.economicBonus,
+    };
+
+    // Apply discovery bonuses
+    const zone = state.zones[discovery.zoneId];
+    if (zone) {
+      if (discovery.bonus.oil) zone.resources.oil += discovery.bonus.oil;
+      if (discovery.bonus.gas) zone.resources.gas += discovery.bonus.gas;
+      if (discovery.bonus.minerals) zone.resources.minerals += discovery.bonus.minerals;
+      if (discovery.bonus.shipping) zone.resources.shipping += discovery.bonus.shipping;
+    }
+    if (discovery.economicBonus) {
+      state.factions[state.playerFaction].resources.economicOutput += discovery.economicBonus;
+    }
+  }
+
+  // Generate environmental events
+  const envEvent = generateEnvironmentalEvent(state);
+  if (envEvent) {
+    state.pendingEnvironmentalEvent = {
+      id: envEvent.id,
+      name: envEvent.name,
+      description: envEvent.description,
+      effects: envEvent.effects,
+    };
+
+    // Apply environmental effects
+    if (envEvent.effects.globalIceMelt) {
+      state.globalIceExtent = Math.max(0, state.globalIceExtent - envEvent.effects.globalIceMelt);
+    }
+    if (envEvent.effects.unitEffects) {
+      envEvent.effects.unitEffects.forEach(ue => {
+        state.militaryUnits
+          .filter(u => u.owner === ue.factionId && u.status !== 'destroyed')
+          .forEach(u => {
+            u.strength = Math.max(10, u.strength - (u.strength * ue.damagePercent / 100));
+          });
+      });
+    }
+  }
+
+  // Check nuclear escalation
+  const nuclearEvent = checkNuclearEscalation(state);
+  if (nuclearEvent) {
+    state.nuclearReadiness = nuclearEvent.newReadiness;
+  }
+
+  // Check for achievements
+  checkAchievements(state);
+
   // Resource regeneration
   Object.values(state.factions).forEach(faction => {
     // Base income
@@ -235,6 +335,146 @@ export const advanceTurn = (state: GameState): void => {
 
   // Check victory conditions
   checkVictoryConditions(state);
+};
+
+// Achievement checking
+const checkAchievements = (state: GameState): void => {
+  // First Blood - won first combat
+  if (!state.unlockedAchievements.includes('first_blood')) {
+    const wonCombat = state.history.some(h =>
+      h.events.some(e => e.name.toLowerCase().includes('victory'))
+    );
+    if (wonCombat || state.combatResult?.success) {
+      unlockAchievement(state, 'first_blood');
+    }
+  }
+
+  // Zone Conqueror - captured 3 zones
+  if (!state.unlockedAchievements.includes('zone_conqueror')) {
+    const capturedZones = Object.values(state.zones).filter(z => z.controller === state.playerFaction).length;
+    const startingZones = state.playerFaction === 'russia' ? 8 :
+                          state.playerFaction === 'usa' ? 3 : 2;
+    if (capturedZones >= startingZones + 3) {
+      unlockAchievement(state, 'zone_conqueror');
+    }
+  }
+
+  // Arctic Hegemon - control 50% of zones
+  if (!state.unlockedAchievements.includes('arctic_hegemon')) {
+    const totalZones = Object.keys(state.zones).length;
+    const controlledZones = Object.values(state.zones).filter(z => z.controller === state.playerFaction).length;
+    if (controlledZones / totalZones >= 0.5) {
+      unlockAchievement(state, 'arctic_hegemon');
+    }
+  }
+
+  // Nuclear Brinksman - reached crisis and de-escalated
+  if (!state.unlockedAchievements.includes('nuclear_brinksman')) {
+    const hadCrisis = state.relations.some(r =>
+      r.factions.includes(state.playerFaction) &&
+      (r.tensionLevel === 'crisis' || r.tensionLevel === 'conflict')
+    );
+    const nowCalm = state.relations.every(r =>
+      !r.factions.includes(state.playerFaction) ||
+      r.tensionLevel === 'cooperation' || r.tensionLevel === 'competition'
+    );
+    if (hadCrisis && nowCalm && state.turn > 5) {
+      unlockAchievement(state, 'nuclear_brinksman');
+    }
+  }
+
+  // Peacemaker - cooperation with all for 5 turns
+  if (!state.unlockedAchievements.includes('peacemaker')) {
+    const allCooperative = state.relations.every(r =>
+      !r.factions.includes(state.playerFaction) || r.tensionLevel === 'cooperation'
+    );
+    if (allCooperative && state.turn >= 5) {
+      unlockAchievement(state, 'peacemaker');
+    }
+  }
+};
+
+// Unlock an achievement and apply rewards
+export const unlockAchievement = (state: GameState, achievementId: string): void => {
+  if (state.unlockedAchievements.includes(achievementId)) return;
+
+  const achievement = ACHIEVEMENTS[achievementId];
+  if (!achievement) return;
+
+  state.unlockedAchievements.push(achievementId);
+
+  // Apply rewards
+  const faction = state.factions[state.playerFaction];
+  if (achievement.reward.influencePoints) {
+    faction.resources.influencePoints += achievement.reward.influencePoints;
+  }
+  if (achievement.reward.economicOutput) {
+    faction.resources.economicOutput += achievement.reward.economicOutput;
+  }
+  if (achievement.reward.legitimacy) {
+    faction.resources.legitimacy = Math.min(100, faction.resources.legitimacy + achievement.reward.legitimacy);
+  }
+
+  // Add notification
+  state.notifications.push({
+    id: `notif_ach_${Date.now()}`,
+    type: 'achievement',
+    title: achievement.name,
+    description: achievement.description,
+    timestamp: Date.now(),
+  });
+};
+
+// Apply crisis choice consequences
+export const applyCrisisChoice = (
+  state: GameState,
+  choiceId: string,
+  success: boolean
+): void => {
+  if (!state.activeCrisis) return;
+
+  const choice = state.activeCrisis.choices.find(c => c.id === choiceId);
+  if (!choice) return;
+
+  const consequences = success ? choice.consequences : (choice.failureConsequences || choice.consequences);
+  const playerFaction = state.factions[state.playerFaction];
+
+  // Apply tension changes
+  if (consequences.tensionChange && Array.isArray(consequences.tensionChange)) {
+    (consequences.tensionChange as { faction: FactionId; amount: number }[]).forEach(tc => {
+      updateTension(state, state.playerFaction, tc.faction, tc.amount);
+    });
+  }
+
+  // Apply resource changes
+  if (consequences.legitimacyChange) {
+    playerFaction.resources.legitimacy = Math.max(0, Math.min(100,
+      playerFaction.resources.legitimacy + (consequences.legitimacyChange as number)
+    ));
+  }
+  if (consequences.economicChange) {
+    playerFaction.resources.economicOutput = Math.max(0,
+      playerFaction.resources.economicOutput + (consequences.economicChange as number)
+    );
+  }
+  if (consequences.influenceChange) {
+    playerFaction.resources.influencePoints = Math.max(0,
+      playerFaction.resources.influencePoints + (consequences.influenceChange as number)
+    );
+  }
+  if (consequences.militaryReadinessChange) {
+    playerFaction.resources.militaryReadiness = Math.max(0, Math.min(100,
+      playerFaction.resources.militaryReadiness + (consequences.militaryReadinessChange as number)
+    ));
+  }
+
+  // Unlock achievement if applicable
+  if (consequences.achievementUnlock && success) {
+    unlockAchievement(state, consequences.achievementUnlock as string);
+  }
+
+  // Clear the crisis
+  state.activeCrisis = null;
 };
 
 const runAITurns = (state: GameState): void => {

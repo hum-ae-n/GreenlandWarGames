@@ -2,9 +2,10 @@ import { useState, useCallback, useEffect } from 'react';
 import { GameState, FactionId, GameAction, CombatResultState } from './types/game';
 import { createInitialGameState, updateTension } from './game/state';
 import { executeAction } from './game/actions';
-import { advanceTurn } from './game/turns';
+import { advanceTurn, applyCrisisChoice, unlockAchievement } from './game/turns';
 import { resolveCombat, UNIT_SPECS, OPERATION_SPECS, OperationType, UnitType } from './game/military';
 import { getLeaderForFaction } from './game/leaders';
+import { ACHIEVEMENTS, CrisisChoice } from './game/drama';
 import { ArcticMap, ZoneDetail } from './components/ArcticMap';
 import { Dashboard, EventLog } from './components/Dashboard';
 import { ActionPanel } from './components/ActionPanel';
@@ -13,6 +14,13 @@ import { GameOver } from './components/GameOver';
 import { MilitaryPanel, CombatResultModal } from './components/MilitaryPanel';
 import { LeaderDialog } from './components/LeaderDialog';
 import { AudioControls } from './components/AudioControls';
+import {
+  CrisisModal,
+  AchievementPopup,
+  DiscoveryPopup,
+  EnvironmentalEventPopup,
+  NuclearModal,
+} from './components/CrisisModal';
 import { LeaderId } from './components/PixelArt';
 import { getChiptuneEngine } from './audio/ChiptuneEngine';
 import './App.css';
@@ -30,6 +38,13 @@ function App() {
     leaderId: LeaderId;
     context: string;
   } | null>(null);
+
+  // Drama system state
+  const [showAchievement, setShowAchievement] = useState<string | null>(null);
+  const [showDiscovery, setShowDiscovery] = useState(false);
+  const [showEnvironmentalEvent, setShowEnvironmentalEvent] = useState(false);
+  const [showNuclearModal, setShowNuclearModal] = useState(false);
+  const [seenAchievements, setSeenAchievements] = useState<Set<string>>(new Set());
 
   // Handle window resize
   useEffect(() => {
@@ -73,6 +88,44 @@ function App() {
       maxTension === 'confrontation' ? 'tense' : 'peaceful'
     );
   }, [gameState?.relations]);
+
+  // Check for new achievements to display
+  useEffect(() => {
+    if (!gameState) return;
+
+    // Find first unseen achievement
+    for (const achId of gameState.unlockedAchievements) {
+      if (!seenAchievements.has(achId)) {
+        setShowAchievement(achId);
+        getChiptuneEngine().playSfx('success');
+        break;
+      }
+    }
+  }, [gameState?.unlockedAchievements, seenAchievements]);
+
+  // Show discovery popup when one is pending
+  useEffect(() => {
+    if (gameState?.pendingDiscovery && !showDiscovery) {
+      setShowDiscovery(true);
+      getChiptuneEngine().playSfx('success');
+    }
+  }, [gameState?.pendingDiscovery]);
+
+  // Show environmental event popup
+  useEffect(() => {
+    if (gameState?.pendingEnvironmentalEvent && !showEnvironmentalEvent) {
+      setShowEnvironmentalEvent(true);
+      getChiptuneEngine().playSfx('warning');
+    }
+  }, [gameState?.pendingEnvironmentalEvent]);
+
+  // Show nuclear modal when at high readiness
+  useEffect(() => {
+    if (gameState && (gameState.nuclearReadiness === 'defcon2' || gameState.nuclearReadiness === 'defcon1')) {
+      setShowNuclearModal(true);
+      getChiptuneEngine().playSfx('warning');
+    }
+  }, [gameState?.nuclearReadiness]);
 
   const handleFactionSelect = useCallback((factionId: FactionId) => {
     const state = createInitialGameState(factionId);
@@ -224,6 +277,11 @@ function App() {
 
     newState.combatResult = combatResult;
 
+    // Store combat surprise if any
+    if (result.combatSurprise) {
+      newState.combatSurprise = result.combatSurprise;
+    }
+
     // Play combat sound
     getChiptuneEngine().playSfx(result.success ? 'success' : 'warning');
 
@@ -269,6 +327,11 @@ function App() {
     const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
     const result = newState.combatResult;
 
+    // Unlock first blood achievement on first combat win
+    if (result?.success && !newState.unlockedAchievements.includes('first_blood')) {
+      unlockAchievement(newState, 'first_blood');
+    }
+
     // Show leader reaction after combat
     if (result) {
       const leaderId = getLeaderForFaction(result.defenderFaction);
@@ -281,6 +344,94 @@ function App() {
     }
 
     newState.combatResult = null;
+    newState.combatSurprise = null;
+    setGameState(newState);
+  }, [gameState]);
+
+  // Handle crisis resolution
+  const handleCrisisResolve = useCallback((choice: CrisisChoice, success: boolean) => {
+    if (!gameState) return;
+
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    applyCrisisChoice(newState, choice.id, success);
+
+    // Handle leader reaction if specified
+    const consequences = success ? choice.consequences : (choice.failureConsequences || choice.consequences);
+    if (consequences.leaderReaction) {
+      const reaction = consequences.leaderReaction as { leader: LeaderId; context: string };
+      setTimeout(() => {
+        setShowLeaderDialog({
+          leaderId: reaction.leader,
+          context: reaction.context,
+        });
+      }, 1000);
+    }
+
+    getChiptuneEngine().playSfx(success ? 'success' : 'warning');
+    setGameState(newState);
+  }, [gameState]);
+
+  // Handle achievement dismissal
+  const handleDismissAchievement = useCallback(() => {
+    if (showAchievement) {
+      setSeenAchievements(prev => new Set([...prev, showAchievement]));
+      setShowAchievement(null);
+    }
+  }, [showAchievement]);
+
+  // Handle discovery dismissal
+  const handleDismissDiscovery = useCallback(() => {
+    if (!gameState) return;
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    newState.pendingDiscovery = null;
+    setGameState(newState);
+    setShowDiscovery(false);
+  }, [gameState]);
+
+  // Handle environmental event dismissal
+  const handleDismissEnvironmentalEvent = useCallback(() => {
+    if (!gameState) return;
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    newState.pendingEnvironmentalEvent = null;
+    setGameState(newState);
+    setShowEnvironmentalEvent(false);
+  }, [gameState]);
+
+  // Handle nuclear modal resolution
+  const handleNuclearResolve = useCallback((effect: 'escalate' | 'maintain' | 'deescalate') => {
+    if (!gameState) return;
+
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+
+    if (effect === 'escalate') {
+      // Game over - nuclear war
+      newState.gameOver = true;
+      newState.winner = null; // No winner in nuclear war
+      setScreen('game_over');
+    } else if (effect === 'deescalate') {
+      // Attempt de-escalation
+      if (Math.random() > 0.3) {
+        // Success - reduce all tensions
+        newState.relations.forEach(rel => {
+          if (rel.factions.includes(newState.playerFaction)) {
+            rel.tensionValue = Math.max(0, rel.tensionValue - 50);
+            if (rel.tensionValue === 0 && rel.tensionLevel !== 'cooperation') {
+              const levels = ['cooperation', 'competition', 'confrontation', 'crisis', 'conflict'];
+              const idx = levels.indexOf(rel.tensionLevel);
+              if (idx > 0) rel.tensionLevel = levels[idx - 1] as typeof rel.tensionLevel;
+            }
+          }
+        });
+        newState.nuclearReadiness = 'elevated';
+        getChiptuneEngine().playSfx('success');
+      } else {
+        // Failed - tension stays
+        getChiptuneEngine().playSfx('warning');
+      }
+    }
+    // maintain - just close modal
+
+    setShowNuclearModal(false);
     setGameState(newState);
   }, [gameState]);
 
@@ -410,6 +561,76 @@ function App() {
           leaderId={showLeaderDialog.leaderId}
           context={showLeaderDialog.context}
           onDismiss={() => setShowLeaderDialog(null)}
+        />
+      )}
+
+      {/* Crisis Modal */}
+      {gameState.activeCrisis && (
+        <CrisisModal
+          crisis={{
+            id: gameState.activeCrisis.id,
+            type: gameState.activeCrisis.type as any,
+            title: gameState.activeCrisis.title,
+            description: gameState.activeCrisis.description,
+            instigator: gameState.activeCrisis.instigator,
+            targetZone: gameState.activeCrisis.targetZone,
+            urgency: gameState.activeCrisis.urgency,
+            turnsToRespond: gameState.activeCrisis.turnsToRespond,
+            choices: gameState.activeCrisis.choices.map(c => ({
+              id: c.id,
+              label: c.label,
+              description: c.description,
+              consequences: c.consequences as any,
+              successChance: c.successChance,
+              failureConsequences: c.failureConsequences as any,
+            })),
+          }}
+          onResolve={handleCrisisResolve}
+        />
+      )}
+
+      {/* Achievement Popup */}
+      {showAchievement && ACHIEVEMENTS[showAchievement] && (
+        <AchievementPopup
+          achievement={ACHIEVEMENTS[showAchievement]}
+          onClose={handleDismissAchievement}
+        />
+      )}
+
+      {/* Discovery Popup */}
+      {showDiscovery && gameState.pendingDiscovery && (
+        <DiscoveryPopup
+          discovery={gameState.pendingDiscovery}
+          zoneName={gameState.zones[gameState.pendingDiscovery.zoneId]?.name || 'Unknown'}
+          onClose={handleDismissDiscovery}
+        />
+      )}
+
+      {/* Environmental Event Popup */}
+      {showEnvironmentalEvent && gameState.pendingEnvironmentalEvent && (
+        <EnvironmentalEventPopup
+          event={gameState.pendingEnvironmentalEvent}
+          onClose={handleDismissEnvironmentalEvent}
+        />
+      )}
+
+      {/* Nuclear Escalation Modal */}
+      {showNuclearModal && (
+        <NuclearModal
+          event={{
+            id: `nuclear_${Date.now()}`,
+            title: gameState.nuclearReadiness === 'defcon1' ? 'NUCLEAR WAR IMMINENT' : 'DEFCON 2',
+            description: gameState.nuclearReadiness === 'defcon1'
+              ? 'Strategic nuclear forces are at maximum readiness. One mistake could trigger Armageddon.'
+              : 'Nuclear tensions are dangerously high. Bombers are armed and ready.',
+            newReadiness: gameState.nuclearReadiness,
+            choices: [
+              { label: 'First Strike Option', effect: 'escalate' as const, consequences: 'GAME OVER - Mutual destruction.' },
+              { label: 'Back Channel Diplomacy', effect: 'deescalate' as const, consequences: 'Attempt to find off-ramp.' },
+              { label: 'Maintain Readiness', effect: 'maintain' as const, consequences: 'Stand firm but don\'t escalate.' },
+            ],
+          }}
+          onResolve={handleNuclearResolve}
         />
       )}
     </div>

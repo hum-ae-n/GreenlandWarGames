@@ -136,6 +136,80 @@ export interface GameState {
   activeOperation: ActiveOperation | null;
   combatResult: CombatResultState | null;
   leaderDialog: LeaderDialogState | null;
+  // Drama system additions
+  unlockedAchievements: string[];
+  activeCrisis: CrisisEventState | null;
+  pendingDiscovery: ResourceDiscoveryState | null;
+  pendingEnvironmentalEvent: EnvironmentalEventState | null;
+  nuclearReadiness: NuclearReadinessLevel;
+  combatSurprise: CombatSurpriseState | null;
+  notifications: GameNotification[];
+}
+
+// Drama state types
+export type NuclearReadinessLevel = 'peacetime' | 'elevated' | 'defcon3' | 'defcon2' | 'defcon1';
+
+export interface CrisisEventState {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  instigator?: FactionId;
+  targetZone?: string;
+  urgency: 'immediate' | 'urgent' | 'developing';
+  choices: CrisisChoiceState[];
+  turnsToRespond: number;
+}
+
+export interface CrisisChoiceState {
+  id: string;
+  label: string;
+  description: string;
+  consequences: Record<string, unknown>;
+  successChance?: number;
+  failureConsequences?: Record<string, unknown>;
+}
+
+export interface ResourceDiscoveryState {
+  id: string;
+  name: string;
+  description: string;
+  zoneId: string;
+  bonus: {
+    oil?: number;
+    gas?: number;
+    minerals?: number;
+    shipping?: number;
+  };
+  economicBonus?: number;
+}
+
+export interface EnvironmentalEventState {
+  id: string;
+  name: string;
+  description: string;
+  effects: {
+    globalIceMelt?: number;
+    zoneEffects?: { zoneId: string; blocked: boolean; turns: number }[];
+    unitEffects?: { factionId: FactionId; damagePercent: number }[];
+  };
+}
+
+export interface CombatSurpriseState {
+  type: string;
+  title: string;
+  description: string;
+  damageMultiplier?: number;
+  bonusEffect?: string;
+  isPositive: boolean;
+}
+
+export interface GameNotification {
+  id: string;
+  type: 'achievement' | 'discovery' | 'crisis' | 'combat' | 'environmental';
+  title: string;
+  description: string;
+  timestamp: number;
 }
 
 // Military state types

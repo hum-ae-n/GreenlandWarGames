@@ -109,6 +109,14 @@ export const createInitialGameState = (playerFaction: FactionId): GameState => {
     activeOperation: null,
     combatResult: null,
     leaderDialog: null,
+    // Drama system state
+    unlockedAchievements: [],
+    activeCrisis: null,
+    pendingDiscovery: null,
+    pendingEnvironmentalEvent: null,
+    nuclearReadiness: 'peacetime',
+    combatSurprise: null,
+    notifications: [],
   };
 };
 

@@ -1,5 +1,6 @@
 // Military System - Unit Types, Operations, and Combat Resolution
-import { FactionId, GameState, MapZone } from '../types/game';
+import { FactionId, GameState, MapZone, CombatSurpriseState } from '../types/game';
+import { rollCombatSurprise } from './drama';
 
 export type UnitType = 'surface_fleet' | 'submarine' | 'aircraft' | 'ground_forces' | 'icebreaker_combat' | 'missile_battery';
 
@@ -44,6 +45,7 @@ export interface OperationOutcome {
   tensionIncrease: number;
   worldReaction: 'ignored' | 'condemned' | 'sanctions' | 'intervention';
   description: string;
+  combatSurprise?: CombatSurpriseState;
 }
 
 // Unit specifications
@@ -219,20 +221,48 @@ export const resolveCombat = (
   zone: MapZone,
   operation: OperationType
 ): OperationOutcome => {
+  // Roll for combat surprises!
+  const attackerSurprise = rollCombatSurprise(true);
+  const defenderSurprise = rollCombatSurprise(false);
+
+  // Use the most dramatic surprise
+  const activeSurprise = attackerSurprise || defenderSurprise;
+
   // Calculate combat power
-  const attackerPower = attacker.reduce((sum, unit) => {
+  let attackerPower = attacker.reduce((sum, unit) => {
     const spec = UNIT_SPECS[unit.type];
     const effectiveness = (unit.strength / 100) * (unit.morale / 100) * (1 + unit.experience / 200);
     return sum + spec.attack * effectiveness;
   }, 0);
 
-  const defenderPower = defender.reduce((sum, unit) => {
+  let defenderPower = defender.reduce((sum, unit) => {
     const spec = UNIT_SPECS[unit.type];
     const effectiveness = (unit.strength / 100) * (unit.morale / 100) * (1 + unit.experience / 200);
     // Defender gets terrain bonus
     const terrainBonus = zone.type === 'territorial' ? 1.5 : 1.2;
     return sum + spec.defense * effectiveness * terrainBonus;
   }, 0);
+
+  // Apply combat surprise modifiers
+  if (attackerSurprise) {
+    const multiplier = attackerSurprise.damageMultiplier || 1;
+    attackerPower *= multiplier;
+    if (attackerSurprise.bonusEffect === 'self_damage') {
+      // Friendly fire hurts attacker
+      attackerPower *= 0.7;
+    }
+    if (attackerSurprise.bonusEffect === 'mutual_damage') {
+      // Both sides hurt
+      defenderPower *= 0.8;
+    }
+  }
+  if (defenderSurprise) {
+    const multiplier = defenderSurprise.damageMultiplier || 1;
+    defenderPower *= (2 - multiplier); // Invert for defender advantage
+    if (defenderSurprise.bonusEffect === 'defender_boost') {
+      defenderPower *= 1.3;
+    }
+  }
 
   // Add randomness (fog of war)
   const attackRoll = attackerPower * (0.8 + Math.random() * 0.4);
@@ -241,13 +271,18 @@ export const resolveCombat = (
   const success = attackRoll > defenseRoll;
   const ratio = success ? attackRoll / defenseRoll : defenseRoll / attackRoll;
 
-  // Calculate casualties
+  // Calculate casualties with surprise modifiers
   const casualties: { unitId: string; damage: number }[] = [];
+  const damageMultiplier = activeSurprise?.damageMultiplier || 1;
 
   // Attacker casualties (more if failed)
   attacker.forEach(unit => {
-    const baseDamage = success ? 10 + Math.random() * 20 : 20 + Math.random() * 40;
-    const damage = Math.min(unit.strength, Math.round(baseDamage / ratio));
+    let baseDamage = success ? 10 + Math.random() * 20 : 20 + Math.random() * 40;
+    // Self damage from friendly fire
+    if (attackerSurprise?.bonusEffect === 'self_damage') {
+      baseDamage *= 1.5;
+    }
+    const damage = Math.min(unit.strength, Math.round(baseDamage / ratio * damageMultiplier));
     if (damage > 0) {
       casualties.push({ unitId: unit.id, damage });
     }
@@ -255,7 +290,11 @@ export const resolveCombat = (
 
   // Defender casualties (more if attack succeeded)
   defender.forEach(unit => {
-    const baseDamage = success ? 20 + Math.random() * 30 : 10 + Math.random() * 15;
+    let baseDamage = success ? 20 + Math.random() * 30 : 10 + Math.random() * 15;
+    // Defender surprises reduce damage taken
+    if (defenderSurprise) {
+      baseDamage *= (2 - (defenderSurprise.damageMultiplier || 1));
+    }
     const damage = Math.min(unit.strength, Math.round(baseDamage * (success ? ratio : 1)));
     if (damage > 0) {
       casualties.push({ unitId: unit.id, damage });
@@ -275,18 +314,34 @@ export const resolveCombat = (
   }
   if (operation === 'nuclear_alert') worldReaction = 'intervention';
 
-  // Generate description
-  const descriptions = success
-    ? [
-        `${attackerFaction.toUpperCase()} forces achieved their objective in ${zone.name}.`,
-        `Successful ${OPERATION_SPECS[operation].name} in the ${zone.name} region.`,
-        `${defenderFaction.toUpperCase()} defenses overwhelmed in ${zone.name}.`,
-      ]
-    : [
-        `${attackerFaction.toUpperCase()} operation failed in ${zone.name}.`,
-        `${defenderFaction.toUpperCase()} repelled the attack in ${zone.name}.`,
-        `Heavy resistance stopped ${attackerFaction.toUpperCase()} forces.`,
-      ];
+  // Generate description with surprise
+  let description: string;
+  if (activeSurprise) {
+    description = `${activeSurprise.title} ${activeSurprise.description}`;
+  } else {
+    const descriptions = success
+      ? [
+          `${attackerFaction.toUpperCase()} forces achieved their objective in ${zone.name}.`,
+          `Successful ${OPERATION_SPECS[operation].name} in the ${zone.name} region.`,
+          `${defenderFaction.toUpperCase()} defenses overwhelmed in ${zone.name}.`,
+        ]
+      : [
+          `${attackerFaction.toUpperCase()} operation failed in ${zone.name}.`,
+          `${defenderFaction.toUpperCase()} repelled the attack in ${zone.name}.`,
+          `Heavy resistance stopped ${attackerFaction.toUpperCase()} forces.`,
+        ];
+    description = descriptions[Math.floor(Math.random() * descriptions.length)];
+  }
+
+  // Create surprise state for UI
+  const combatSurpriseState: CombatSurpriseState | undefined = activeSurprise ? {
+    type: activeSurprise.type,
+    title: activeSurprise.title,
+    description: activeSurprise.description,
+    damageMultiplier: activeSurprise.damageMultiplier,
+    bonusEffect: activeSurprise.bonusEffect,
+    isPositive: attackerSurprise !== null && (attackerSurprise.type === 'critical_hit' || attackerSurprise.type === 'ambush'),
+  } : undefined;
 
   return {
     success,
@@ -294,7 +349,8 @@ export const resolveCombat = (
     zoneControlChange: success && operation === 'invasion' ? attackerFaction : undefined,
     tensionIncrease,
     worldReaction,
-    description: descriptions[Math.floor(Math.random() * descriptions.length)],
+    description,
+    combatSurprise: combatSurpriseState,
   };
 };
 
