@@ -131,6 +131,48 @@ export interface GameState {
   selectedAction: GameAction | null;
   gameOver: boolean;
   winner: FactionId | null;
+  // Military additions
+  militaryUnits: MilitaryUnitState[];
+  activeOperation: ActiveOperation | null;
+  combatResult: CombatResultState | null;
+  leaderDialog: LeaderDialogState | null;
+}
+
+// Military state types
+export interface MilitaryUnitState {
+  id: string;
+  type: string;
+  owner: FactionId;
+  location: string;
+  strength: number;
+  experience: number;
+  morale: number;
+  status: 'ready' | 'deployed' | 'damaged' | 'destroyed';
+  stealthed?: boolean;
+}
+
+export interface ActiveOperation {
+  type: string;
+  executor: FactionId;
+  targetZone: string;
+  targetFaction?: FactionId;
+  selectedUnits: string[];
+}
+
+export interface CombatResultState {
+  success: boolean;
+  attackerFaction: FactionId;
+  defenderFaction: FactionId;
+  zoneName: string;
+  casualties: { unitId: string; unitName: string; damage: number }[];
+  description: string;
+  worldReaction: string;
+}
+
+export interface LeaderDialogState {
+  leaderId: string;
+  context: string;
+  onComplete?: () => void;
 }
 
 export interface VictoryCondition {

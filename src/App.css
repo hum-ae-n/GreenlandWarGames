@@ -1338,3 +1338,298 @@ body {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
+
+/* Panel Tabs */
+.panel-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.panel-tab {
+  flex: 1;
+  padding: 0.5rem;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.panel-tab:hover {
+  border-color: var(--accent-blue);
+  color: var(--text-primary);
+}
+
+.panel-tab.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: white;
+}
+
+/* Military Panel */
+.military-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h3 {
+  font-size: 0.875rem;
+}
+
+.unit-count {
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  background: var(--bg-panel);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.units-section {
+  background: var(--bg-panel);
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.section-header h4 {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.build-btn {
+  padding: 0.25rem 0.5rem;
+  background: var(--accent-green);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.build-btn:hover {
+  background: #16a34a;
+}
+
+.build-menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: var(--bg-primary);
+  border-radius: 4px;
+}
+
+.build-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.build-option:hover:not(.disabled) {
+  border-color: var(--accent-green);
+}
+
+.build-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.build-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.build-name {
+  font-size: 0.625rem;
+  font-weight: bold;
+}
+
+.build-cost {
+  font-size: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.zone-units, .all-units {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.zone-label {
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.no-units {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 0.5rem;
+}
+
+.more-units {
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 0.25rem;
+}
+
+.unit-location {
+  color: var(--accent-blue);
+  margin-right: 0.5rem;
+}
+
+/* Operations Section */
+.operations-section {
+  background: var(--bg-panel);
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.operations-section h4 {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.operation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.op-name {
+  font-size: 0.625rem;
+  font-weight: bold;
+}
+
+/* Target Section */
+.target-section {
+  background: var(--bg-panel);
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.target-section h4 {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+/* Execute Section */
+.execute-section {
+  background: var(--bg-panel);
+  border-radius: 4px;
+  padding: 0.75rem;
+}
+
+.operation-summary {
+  margin-bottom: 0.75rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.tension-cost {
+  color: var(--accent-red);
+}
+
+.legitimacy-cost {
+  color: var(--accent-yellow);
+}
+
+.execute-operation-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--accent-red);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.execute-operation-btn:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.execute-operation-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Combat Modal */
+.combat-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.combat-zone {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.combat-description {
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.world-reaction {
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.reaction-condemned {
+  background: var(--accent-yellow);
+  color: black;
+}
+
+.reaction-sanctions {
+  background: #f97316;
+  color: white;
+}
+
+.reaction-intervention {
+  background: var(--accent-red);
+  color: white;
+}

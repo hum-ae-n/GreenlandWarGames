@@ -1,6 +1,7 @@
-import { GameState, FactionId, BilateralRelation, TensionLevel } from '../types/game';
+import { GameState, FactionId, BilateralRelation, TensionLevel, MilitaryUnitState } from '../types/game';
 import { FACTIONS } from '../data/factions';
 import { ZONES } from '../data/zones';
+import { generateStartingUnits } from './military';
 
 const TENSION_LEVELS: TensionLevel[] = ['cooperation', 'competition', 'confrontation', 'crisis', 'conflict'];
 
@@ -60,7 +61,33 @@ const createInitialRelations = (): BilateralRelation[] => {
   return relations;
 };
 
+// Convert military units to state format
+const convertUnitsToState = (factionId: FactionId): MilitaryUnitState[] => {
+  const units = generateStartingUnits(factionId);
+  return units.map(u => ({
+    id: u.id,
+    type: u.type,
+    owner: u.owner,
+    location: u.location,
+    strength: u.strength,
+    experience: u.experience,
+    morale: u.morale,
+    status: u.status,
+    stealthed: u.stealthed,
+  }));
+};
+
 export const createInitialGameState = (playerFaction: FactionId): GameState => {
+  // Generate military units for all major factions
+  const allUnits: MilitaryUnitState[] = [
+    ...convertUnitsToState('usa'),
+    ...convertUnitsToState('russia'),
+    ...convertUnitsToState('china'),
+    ...convertUnitsToState('canada'),
+    ...convertUnitsToState('norway'),
+    ...convertUnitsToState('denmark'),
+  ];
+
   return {
     turn: 1,
     year: 2030,
@@ -77,6 +104,11 @@ export const createInitialGameState = (playerFaction: FactionId): GameState => {
     selectedAction: null,
     gameOver: false,
     winner: null,
+    // Military state
+    militaryUnits: allUnits,
+    activeOperation: null,
+    combatResult: null,
+    leaderDialog: null,
   };
 };
 
