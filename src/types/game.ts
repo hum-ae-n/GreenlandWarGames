@@ -144,6 +144,85 @@ export interface GameState {
   nuclearReadiness: NuclearReadinessLevel;
   combatSurprise: CombatSurpriseState | null;
   notifications: GameNotification[];
+  // Reputation system
+  playerReputation: PlayerReputation | null;
+  // Economics system
+  economicState: EconomicStateData | null;
+}
+
+// Economic system types
+export type TradeDealType =
+  | 'resource_exchange'
+  | 'shipping_rights'
+  | 'technology_sharing'
+  | 'joint_development'
+  | 'military_access'
+  | 'energy_contract';
+
+export type SanctionType =
+  | 'trade_embargo'
+  | 'sector_sanctions'
+  | 'financial_sanctions'
+  | 'technology_ban'
+  | 'shipping_ban';
+
+export interface TradeDealData {
+  id: string;
+  type: TradeDealType;
+  factions: [FactionId, FactionId];
+  name: string;
+  description: string;
+  turnsRemaining: number;
+  isActive: boolean;
+  signedOnTurn: number;
+}
+
+export interface SanctionData {
+  id: string;
+  type: SanctionType;
+  imposedBy: FactionId[];
+  targetFaction: FactionId;
+  name: string;
+  description: string;
+  turnsActive: number;
+  worldReaction: 'supported' | 'controversial' | 'opposed';
+}
+
+export interface EconomicStateData {
+  tradeDeals: TradeDealData[];
+  activeSanctions: SanctionData[];
+  marketPrices: {
+    oil: number;
+    gas: number;
+    minerals: number;
+    shipping: number;
+  };
+  globalTradeIndex: number;
+}
+
+// Technology state
+export interface TechStateData {
+  researched: string[];
+  currentResearch: string | null;
+  researchProgress: number;
+  techPoints: number;
+}
+
+// Player reputation tracking
+export interface PlayerReputation {
+  militarism: number;        // 0-100 - Are you aggressive or peaceful?
+  reliability: number;       // 0-100 - Do you keep your word?
+  diplomacy: number;         // 0-100 - Are you a good negotiator?
+  environmentalism: number;  // 0-100 - Do you protect the Arctic?
+  humanRights: number;       // 0-100 - Do you respect indigenous rights?
+  economicFairness: number;  // 0-100 - Are your trade practices fair?
+  overallReputation: number; // Calculated from above
+  treatiesBroken: number;
+  treatiesHonored: number;
+  warsDeclared: number;
+  peaceTreatiesSigned: number;
+  zonesConquered: number;
+  zonesLiberated: number;
 }
 
 // Drama state types

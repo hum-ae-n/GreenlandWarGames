@@ -25,8 +25,27 @@ import { Tutorial, HelpButton } from './components/Tutorial';
 import { PopupManager } from './components/LeaderPopup';
 import { Advisor, DiplomacyPanel } from './components/Advisor';
 import { LeaderId, PixelPortrait, LEADER_NAMES } from './components/PixelArt';
+import { ReputationMini, ReputationPanel } from './components/ReputationPanel';
+import { ObjectivesMini, ObjectivesPanel } from './components/ObjectivesPanel';
+import { EconomicsMini, EconomicsPanel } from './components/EconomicsPanel';
+import { TechMini, TechPanel } from './components/TechPanel';
 import { FACTIONS } from './data/factions';
 import { getChiptuneEngine } from './audio/ChiptuneEngine';
+import { DECISION_TEMPLATES, DecisionType } from './game/reputation';
+import {
+  createInitialEconomicState,
+  EconomicState,
+  TradeDeal,
+  Sanction
+} from './game/economics';
+import {
+  createInitialTechState,
+  TechState,
+  startResearch,
+  processResearch,
+  cancelResearch,
+  applyTechEffects,
+} from './game/technology';
 import './App.css';
 
 type GameScreen = 'faction_select' | 'playing' | 'game_over';
@@ -55,6 +74,18 @@ function App() {
   const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
     return localStorage.getItem('arctic_dominion_tutorial_seen') === 'true';
   });
+
+  // Panel display state
+  const [showReputationPanel, setShowReputationPanel] = useState(false);
+  const [showObjectivesPanel, setShowObjectivesPanel] = useState(false);
+  const [showEconomicsPanel, setShowEconomicsPanel] = useState(false);
+  const [showTechPanel, setShowTechPanel] = useState(false);
+
+  // Economic state
+  const [economicState, setEconomicState] = useState<EconomicState | null>(null);
+
+  // Tech state
+  const [techState, setTechState] = useState<TechState | null>(null);
 
   // Handle window resize
   useEffect(() => {
@@ -140,6 +171,8 @@ function App() {
   const handleFactionSelect = useCallback((factionId: FactionId) => {
     const state = createInitialGameState(factionId);
     setGameState(state);
+    setEconomicState(createInitialEconomicState());
+    setTechState(createInitialTechState());
     setScreen('playing');
 
     // Show tutorial for new players, then show greeting
@@ -153,6 +186,65 @@ function App() {
     }
   }, [hasSeenTutorial]);
 
+  // Helper to update reputation based on action
+  const updateReputationForAction = useCallback((state: GameState, action: GameAction, _targetFaction?: FactionId) => {
+    if (!state.playerReputation) return;
+
+    // Map action types to reputation decisions
+    let decisionType: DecisionType | null = null;
+
+    if (action.category === 'military') {
+      if (action.id.includes('exercise') || action.id.includes('patrol') || action.id.includes('force')) {
+        decisionType = 'military_aggression';
+      } else if (action.id.includes('defense')) {
+        decisionType = 'military_defense';
+      }
+    } else if (action.category === 'diplomatic') {
+      if (action.id.includes('treaty') || action.id.includes('council')) {
+        decisionType = 'treaty_signed';
+      } else if (action.id.includes('protest')) {
+        decisionType = 'diplomatic_failure';
+      }
+    } else if (action.category === 'economic') {
+      if (action.id.includes('extraction')) {
+        decisionType = 'environmental_exploitation';
+      } else {
+        decisionType = 'economic_cooperation';
+      }
+    } else if (action.category === 'covert') {
+      decisionType = 'military_aggression'; // Covert ops are seen as aggressive
+    }
+
+    if (decisionType && DECISION_TEMPLATES[decisionType] && state.playerReputation) {
+      const template = DECISION_TEMPLATES[decisionType];
+      const effects = template.effects;
+      const rep = state.playerReputation;
+
+      // Apply effects
+      if (effects.militarism) rep.militarism = Math.max(0, Math.min(100, rep.militarism + effects.militarism));
+      if (effects.reliability) rep.reliability = Math.max(0, Math.min(100, rep.reliability + effects.reliability));
+      if (effects.diplomacy) rep.diplomacy = Math.max(0, Math.min(100, rep.diplomacy + effects.diplomacy));
+      if (effects.environmentalism) rep.environmentalism = Math.max(0, Math.min(100, rep.environmentalism + effects.environmentalism));
+      if (effects.humanRights) rep.humanRights = Math.max(0, Math.min(100, rep.humanRights + effects.humanRights));
+      if (effects.economicFairness) rep.economicFairness = Math.max(0, Math.min(100, rep.economicFairness + effects.economicFairness));
+
+      // Update counters
+      if (decisionType === 'treaty_signed') rep.treatiesHonored++;
+      if (decisionType === 'military_aggression') rep.warsDeclared++;
+
+      // Recalculate overall
+      const militarismScore = 100 - rep.militarism;
+      rep.overallReputation = Math.round(
+        militarismScore * 0.1 +
+        rep.reliability * 0.25 +
+        rep.diplomacy * 0.2 +
+        rep.environmentalism * 0.15 +
+        rep.humanRights * 0.15 +
+        rep.economicFairness * 0.15
+      );
+    }
+  }, []);
+
   const handleExecuteAction = useCallback((
     action: GameAction,
     targetFaction?: FactionId,
@@ -162,6 +254,10 @@ function App() {
 
     const newState = JSON.parse(JSON.stringify(gameState));
     executeAction(newState, action, targetFaction, targetZone);
+
+    // Update reputation based on action
+    updateReputationForAction(newState, action, targetFaction);
+
     setGameState(newState);
 
     // Play sound effect
@@ -176,7 +272,7 @@ function App() {
         }, 500);
       }
     }
-  }, [gameState]);
+  }, [gameState, updateReputationForAction]);
 
   const handleStartOperation = useCallback((
     operation: OperationType,
@@ -295,6 +391,36 @@ function App() {
     // Store combat surprise if any
     if (result.combatSurprise) {
       newState.combatSurprise = result.combatSurprise;
+    }
+
+    // Update reputation for military operation
+    if (newState.playerReputation) {
+      const rep = newState.playerReputation;
+
+      // Military operations affect reputation
+      rep.militarism = Math.min(100, rep.militarism + 10);
+      rep.reliability = Math.max(0, rep.reliability - 2); // Aggression reduces perceived reliability
+
+      if (operation === 'invasion') {
+        rep.warsDeclared++;
+        rep.zonesConquered++;
+        rep.humanRights = Math.max(0, rep.humanRights - 5);
+        rep.diplomacy = Math.max(0, rep.diplomacy - 10);
+      } else if (operation === 'strike') {
+        rep.humanRights = Math.max(0, rep.humanRights - 3);
+        rep.diplomacy = Math.max(0, rep.diplomacy - 5);
+      }
+
+      // Recalculate overall
+      const militarismScore = 100 - rep.militarism;
+      rep.overallReputation = Math.round(
+        militarismScore * 0.1 +
+        rep.reliability * 0.25 +
+        rep.diplomacy * 0.2 +
+        rep.environmentalism * 0.15 +
+        rep.humanRights * 0.15 +
+        rep.economicFairness * 0.15
+      );
     }
 
     // Play combat sound
@@ -454,18 +580,181 @@ function App() {
     if (!gameState) return;
 
     const newState = JSON.parse(JSON.stringify(gameState));
-    advanceTurn(newState);
+    const newEconomicState = economicState ? JSON.parse(JSON.stringify(economicState)) : null;
+    const newTechState = techState ? JSON.parse(JSON.stringify(techState)) as TechState : null;
+
+    advanceTurn(newState, newEconomicState);
+
+    // Process research progress
+    if (newTechState) {
+      const researchResult = processResearch(newState, newTechState);
+      if (researchResult.completed && researchResult.tech) {
+        // Research completed - show notification
+        newState.notifications.push({
+          id: `notif_tech_${Date.now()}`,
+          type: 'discovery',
+          title: `Research Complete: ${researchResult.tech.name}`,
+          description: researchResult.tech.description,
+          timestamp: Date.now(),
+        });
+        getChiptuneEngine().playSfx('success');
+      }
+      // Apply tech effects each turn
+      applyTechEffects(newState, newTechState);
+      setTechState(newTechState);
+    }
+
     setGameState(newState);
+    if (newEconomicState) {
+      setEconomicState(newEconomicState);
+    }
 
     getChiptuneEngine().playSfx('click');
 
     if (newState.gameOver) {
       setScreen('game_over');
     }
-  }, [gameState]);
+  }, [gameState, economicState, techState]);
+
+  // Economic handlers
+  const handleDealCreated = useCallback((deal: TradeDeal) => {
+    if (!economicState || !gameState) return;
+
+    const newEconomicState = JSON.parse(JSON.stringify(economicState)) as EconomicState;
+    newEconomicState.tradeDeals.push(deal);
+
+    // Deduct influence cost
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    newState.factions[newState.playerFaction].resources.influencePoints -= 25; // Base cost
+
+    // Update reputation for economic cooperation
+    if (newState.playerReputation) {
+      newState.playerReputation.economicFairness = Math.min(100,
+        newState.playerReputation.economicFairness + 5
+      );
+      newState.playerReputation.diplomacy = Math.min(100,
+        newState.playerReputation.diplomacy + 3
+      );
+    }
+
+    setEconomicState(newEconomicState);
+    setGameState(newState);
+    getChiptuneEngine().playSfx('success');
+  }, [economicState, gameState]);
+
+  const handleSanctionImposed = useCallback((sanction: Sanction) => {
+    if (!economicState || !gameState) return;
+
+    const newEconomicState = JSON.parse(JSON.stringify(economicState)) as EconomicState;
+    newEconomicState.activeSanctions.push(sanction);
+
+    // Deduct legitimacy cost
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    newState.factions[newState.playerFaction].resources.legitimacy -= 10;
+
+    // Update reputation
+    if (newState.playerReputation) {
+      newState.playerReputation.economicFairness = Math.max(0,
+        newState.playerReputation.economicFairness - 8
+      );
+      newState.playerReputation.diplomacy = Math.max(0,
+        newState.playerReputation.diplomacy - 5
+      );
+      if (sanction.worldReaction === 'opposed') {
+        newState.playerReputation.reliability = Math.max(0,
+          newState.playerReputation.reliability - 5
+        );
+      }
+    }
+
+    // Increase tension with target
+    updateTension(newState, newState.playerFaction, sanction.targetFaction, 25);
+
+    setEconomicState(newEconomicState);
+    setGameState(newState);
+    getChiptuneEngine().playSfx('warning');
+  }, [economicState, gameState]);
+
+  const handleDealCanceled = useCallback((dealId: string) => {
+    if (!economicState || !gameState) return;
+
+    const newEconomicState = JSON.parse(JSON.stringify(economicState)) as EconomicState;
+    const deal = newEconomicState.tradeDeals.find(d => d.id === dealId);
+    if (deal) {
+      deal.isActive = false;
+    }
+
+    // Update reputation for breaking deal
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    if (newState.playerReputation) {
+      newState.playerReputation.reliability = Math.max(0,
+        newState.playerReputation.reliability - 10
+      );
+      newState.playerReputation.treatiesBroken++;
+    }
+
+    setEconomicState(newEconomicState);
+    setGameState(newState);
+    getChiptuneEngine().playSfx('click');
+  }, [economicState, gameState]);
+
+  const handleSanctionLifted = useCallback((sanctionId: string) => {
+    if (!economicState || !gameState) return;
+
+    const newEconomicState = JSON.parse(JSON.stringify(economicState)) as EconomicState;
+    newEconomicState.activeSanctions = newEconomicState.activeSanctions.filter(
+      s => s.id !== sanctionId
+    );
+
+    // Improve reputation for lifting sanctions
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    if (newState.playerReputation) {
+      newState.playerReputation.economicFairness = Math.min(100,
+        newState.playerReputation.economicFairness + 3
+      );
+      newState.playerReputation.diplomacy = Math.min(100,
+        newState.playerReputation.diplomacy + 5
+      );
+    }
+
+    setEconomicState(newEconomicState);
+    setGameState(newState);
+    getChiptuneEngine().playSfx('success');
+  }, [economicState, gameState]);
+
+  // Tech handlers
+  const handleStartResearch = useCallback((techId: string) => {
+    if (!techState || !gameState) return;
+
+    const newTechState = JSON.parse(JSON.stringify(techState)) as TechState;
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+
+    const result = startResearch(newState, newTechState, techId);
+    if (result.success) {
+      setTechState(newTechState);
+      setGameState(newState);
+      getChiptuneEngine().playSfx('action');
+    }
+  }, [techState, gameState]);
+
+  const handleCancelResearch = useCallback(() => {
+    if (!techState || !gameState) return;
+
+    const newTechState = JSON.parse(JSON.stringify(techState)) as TechState;
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+
+    const result = cancelResearch(newState, newTechState);
+    if (result.success) {
+      setTechState(newTechState);
+      setGameState(newState);
+      getChiptuneEngine().playSfx('click');
+    }
+  }, [techState, gameState]);
 
   const handleRestart = useCallback(() => {
     setGameState(null);
+    setEconomicState(null);
+    setTechState(null);
     setSelectedZone(null);
     setScreen('faction_select');
     getChiptuneEngine().stop();
@@ -525,6 +814,27 @@ function App() {
       <main className="game-main">
         <aside className="left-panel">
           <Dashboard gameState={gameState} />
+          <ReputationMini
+            gameState={gameState}
+            onClick={() => setShowReputationPanel(true)}
+          />
+          <ObjectivesMini
+            gameState={gameState}
+            onClick={() => setShowObjectivesPanel(true)}
+          />
+          {economicState && (
+            <EconomicsMini
+              state={gameState}
+              economicState={economicState}
+              onClick={() => setShowEconomicsPanel(true)}
+            />
+          )}
+          {techState && (
+            <TechMini
+              techState={techState}
+              onClick={() => setShowTechPanel(true)}
+            />
+          )}
           <DiplomacyPanel
             gameState={gameState}
             onSelectLeader={(leaderId, _factionId) => {
@@ -709,6 +1019,62 @@ function App() {
         enabled={!showTutorial && !showLeaderDialog && !gameState.activeCrisis && !gameState.combatResult}
         excludeLeaders={[getLeaderForFaction(gameState.playerFaction) as LeaderId].filter(Boolean)}
       />
+
+      {/* Reputation Panel Modal */}
+      {showReputationPanel && (
+        <div className="modal-overlay" onClick={() => setShowReputationPanel(false)}>
+          <div className="modal-content panel-modal" onClick={e => e.stopPropagation()}>
+            <ReputationPanel
+              gameState={gameState}
+              onClose={() => setShowReputationPanel(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Objectives Panel Modal */}
+      {showObjectivesPanel && (
+        <div className="modal-overlay" onClick={() => setShowObjectivesPanel(false)}>
+          <div className="modal-content panel-modal" onClick={e => e.stopPropagation()}>
+            <ObjectivesPanel
+              gameState={gameState}
+              onClose={() => setShowObjectivesPanel(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Economics Panel Modal */}
+      {showEconomicsPanel && economicState && (
+        <div className="modal-overlay" onClick={() => setShowEconomicsPanel(false)}>
+          <div className="modal-content panel-modal economics-modal" onClick={e => e.stopPropagation()}>
+            <EconomicsPanel
+              state={gameState}
+              economicState={economicState}
+              onDealCreated={handleDealCreated}
+              onSanctionImposed={handleSanctionImposed}
+              onDealCanceled={handleDealCanceled}
+              onSanctionLifted={handleSanctionLifted}
+              onClose={() => setShowEconomicsPanel(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Tech Panel Modal */}
+      {showTechPanel && techState && (
+        <div className="modal-overlay" onClick={() => setShowTechPanel(false)}>
+          <div className="modal-content panel-modal tech-modal" onClick={e => e.stopPropagation()}>
+            <TechPanel
+              state={gameState}
+              techState={techState}
+              onStartResearch={handleStartResearch}
+              onCancelResearch={handleCancelResearch}
+              onClose={() => setShowTechPanel(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

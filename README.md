@@ -62,15 +62,17 @@ military brinkmanship.
 
 ### Strategic Gameplay
 - **20 turns** spanning a decade of Arctic competition
-- **8 playable factions** with unique abilities and starting positions
+- **4 playable factions** (USA, Russia, China, EU) with unique abilities
 - **Hex-based polar map** with realistic Arctic geography
 - **Dynamic tension system** from cooperation to all-out conflict
+- **Active AI opponents** that expand, build military, and react to your moves
 
 ### Diplomacy & Politics
 - **Civ V-style leader interactions** - World leaders react to your moves
 - **Diplomatic message system** - Receive threats, proposals, and warnings
 - **Legitimacy mechanics** - Your international standing matters
 - **Crisis events** - Navigate territorial disputes and incidents
+- **Reputation system** - Your decisions affect how the world perceives you
 
 ### Military Operations
 - **Naval units** - Icebreakers, submarines, patrol vessels, carriers
@@ -272,11 +274,14 @@ GreenlandWarGames/
 │   │
 │   ├── game/
 │   │   ├── actions.ts           # Action execution logic
+│   │   ├── ai.ts                # AI opponent decision engine
 │   │   ├── drama.ts             # Events & achievements
 │   │   ├── leaders.ts           # Leader AI & reactions
 │   │   ├── military.ts          # Combat resolution
+│   │   ├── reputation.ts        # Player reputation system
 │   │   ├── state.ts             # Game state management
-│   │   └── turns.ts             # Turn progression
+│   │   ├── turns.ts             # Turn progression
+│   │   └── victory.ts           # Victory conditions
 │   │
 │   ├── types/
 │   │   └── game.ts              # TypeScript definitions
@@ -327,7 +332,7 @@ GreenlandWarGames/
 
 ---
 
-## 📜 CREDITS
+## 📜 CREDITS & COPYRIGHT
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -337,13 +342,25 @@ GreenlandWarGames/
 │                                                                              │
 │                              * * *                                           │
 │                                                                              │
-│                    Developed with Claude Code                                │
+│                      © 2025 Kaipability Ltd.                                 │
+│                        All Rights Reserved                                   │
+│                                                                              │
+│                         DEVELOPED BY                                         │
+│                    ─────────────────────                                     │
+│                                                                              │
+│                          Claude (Anthropic)                                  │
+│                    AI Software Engineer & Designer                           │
+│                                                                              │
+│                      Concept & Direction by                                  │
+│                          Kaipability Ltd.                                    │
+│                                                                              │
+│                              * * *                                           │
 │                                                                              │
 │                         TECHNOLOGIES                                         │
 │                    ─────────────────────                                     │
 │                    React + TypeScript + Vite                                 │
-│                    Web Audio API                                             │
-│                    HTML5 Canvas                                              │
+│                    Web Audio API (Procedural Chiptune)                       │
+│                    HTML5 Canvas (Polar Projection)                           │
 │                                                                              │
 │                              * * *                                           │
 │                                                                              │
@@ -354,9 +371,89 @@ GreenlandWarGames/
 
 ---
 
+## 🏢 CONTACT
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                          KAIPABILITY LTD.                                    │
+│                                                                              │
+│        🌐  www.kaipability.com          🤖  www.airl.io                      │
+│                                                                              │
+│        📧  mrv@kaipability.com                                               │
+│                                                                              │
+│        📍  Pottery Lane, Burgess Hill                                        │
+│            49-51 Church Walk                                                 │
+│            Burgess Hill RH15 9BQ                                             │
+│            United Kingdom                                                    │
+│                                                                              │
+│        💻  https://github.com/hum-ae-n/GreenlandWarGames                     │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🤝 CONTRIBUTING
+
+We welcome feedback and contributions for improvements!
+
+- **Report Issues**: Open an issue on GitHub
+- **Feature Requests**: We'd love to hear your ideas
+- **Pull Requests**: Code contributions are welcome
+
+**Don't be a zombie.** 🧟 Think critically, play strategically!
+
+---
+
+## ⚠️ DISCLAIMER
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                              DISCLAIMER                                      │
+│                                                                              │
+│   This is a GAME, not real life.                                             │
+│                                                                              │
+│   Arctic Dominion is a fictional simulation created for entertainment        │
+│   and educational purposes. All characters, leaders, factions, and           │
+│   scenarios depicted are part of a game simulation and do not represent      │
+│   real-world events, policies, or intentions of any government or            │
+│   organization.                                                              │
+│                                                                              │
+│   The geopolitical scenarios, military operations, and diplomatic            │
+│   interactions are entirely fictional and should not be interpreted          │
+│   as predictions, endorsements, or commentary on actual international        │
+│   relations.                                                                 │
+│                                                                              │
+│   Play responsibly. Think critically. Remember: it's just a game.            │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 📄 LICENSE
 
-MIT License - See LICENSE file for details.
+© 2025 Kaipability Ltd. All Rights Reserved.
+
+This software is proprietary. Unauthorized copying, modification, distribution,
+or use of this software, via any medium, is strictly prohibited without express
+written permission from Kaipability Ltd.
+
+For licensing inquiries, contact: mrv@kaipability.com
+
+---
+
+## 🙏 ACKNOWLEDGMENTS
+
+This game was developed almost entirely by **Claude** (Anthropic's AI assistant)
+using Claude Code. The human contribution was providing creative direction and
+prompts - the architecture, code, pixel art, music system, game mechanics, and
+documentation were all generated by Claude.
+
+This project demonstrates the potential of human-AI collaboration in software
+development. We believe in transparency about AI's role in creation.
 
 ---
 
@@ -368,4 +465,6 @@ MIT License - See LICENSE file for details.
                     ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
                               ❄️ Stay frosty ❄️
+
+                    Made with ❤️ by Claude & Kaipability
 ```

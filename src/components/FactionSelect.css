@@ -590,6 +590,43 @@
   text-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
 }
 
+.credits-links {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.credits-links a {
+  color: #8ab4f8;
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s ease;
+}
+
+.credits-links a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.link-sep {
+  color: #444;
+}
+
+.credits-copyright {
+  color: #666;
+  font-size: 11px;
+  margin-top: 15px;
+}
+
+.credits-disclaimer {
+  color: #ff9800;
+  font-size: 11px;
+  margin-top: 5px;
+  font-style: italic;
+}
+
 .version {
   color: #444;
   font-size: 12px;

@@ -5,7 +5,7 @@ import React from 'react';
 
 export type LeaderId =
   | 'trump' | 'putin' | 'xi' | 'kim'
-  | 'starmer' | 'macron' | 'scholz' | 'trudeau'
+  | 'starmer' | 'macron' | 'scholz' | 'carney'
   | 'nato_chief' | 'eu_president' | 'frederiksen' | 'store'
   | 'stubb' | 'modi' | 'erdogan' | 'indigenous_elder'
   | 'lukashenko';
@@ -178,24 +178,24 @@ const SCHOLZ: number[][] = [
   [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],
 ];
 
-// Trudeau: Dark hair, beard, casual
-const TRUDEAU: number[][] = [
-  [0,0,0,0,4,4,4,4,4,4,0,0,0,0,0,0],
-  [0,0,0,4,4,4,4,4,4,4,4,0,0,0,0,0],
-  [0,0,4,4,4,4,4,4,4,4,4,4,0,0,0,0],
-  [0,0,4,5,5,5,5,5,5,5,5,4,0,0,0,0],
+// Carney: Grey/silver hair, distinguished banker look, sharp features
+const CARNEY: number[][] = [
+  [0,0,0,0,11,11,11,11,11,11,0,0,0,0,0,0],
+  [0,0,0,11,11,11,11,11,11,11,11,0,0,0,0,0],
+  [0,0,11,11,11,11,11,11,11,11,11,11,0,0,0,0],
+  [0,0,11,5,5,5,5,5,5,5,5,11,0,0,0,0],
   [0,0,5,5,5,5,5,5,5,5,5,5,0,0,0,0],
   [0,0,5,9,2,5,5,5,9,2,5,5,0,0,0,0],
   [0,0,5,5,5,5,5,5,5,5,5,5,0,0,0,0],
-  [0,0,5,5,5,5,5,5,5,5,5,5,0,0,0,0],
-  [0,0,4,5,5,5,5,5,5,5,5,4,0,0,0,0],
-  [0,0,4,4,5,8,8,8,5,4,4,4,0,0,0,0],
-  [0,0,0,4,4,4,4,4,4,4,0,0,0,0,0,0],
-  [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],
-  [0,0,1,1,1,2,2,2,2,1,1,1,0,0,0,0],
-  [0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-  [0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
-  [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],
+  [0,0,5,5,5,5,1,5,5,5,5,5,0,0,0,0],
+  [0,0,11,5,5,5,5,5,5,5,5,11,0,0,0,0],
+  [0,0,11,11,5,8,8,8,5,11,11,11,0,0,0,0],
+  [0,0,0,11,11,11,11,11,11,11,0,0,0,0,0,0],
+  [0,0,0,10,10,10,10,10,10,10,10,0,0,0,0,0],
+  [0,0,10,10,10,2,2,2,2,10,10,10,0,0,0,0],
+  [0,0,10,10,8,10,10,10,10,10,10,10,0,0,0,0],
+  [0,0,10,10,10,10,10,10,10,10,10,10,0,0,0,0],
+  [0,0,0,10,10,10,10,10,10,10,10,0,0,0,0,0],
 ];
 
 // NATO Chief: Military style, stern
@@ -386,7 +386,7 @@ const PORTRAITS: Record<LeaderId, number[][]> = {
   starmer: STARMER,
   macron: MACRON,
   scholz: SCHOLZ,
-  trudeau: TRUDEAU,
+  carney: CARNEY,
   nato_chief: NATO_CHIEF,
   eu_president: EU_PRESIDENT,
   frederiksen: FREDERIKSEN,
@@ -406,7 +406,7 @@ export const LEADER_NAMES: Record<LeaderId, string> = {
   starmer: 'Keir Starmer',
   macron: 'Emmanuel Macron',
   scholz: 'Olaf Scholz',
-  trudeau: 'Justin Trudeau',
+  carney: 'Mark Carney',
   nato_chief: 'NATO Secretary General',
   eu_president: 'EU Commission President',
   frederiksen: 'Mette Frederiksen',
@@ -426,7 +426,7 @@ export const LEADER_FACTIONS: Record<LeaderId, string> = {
   starmer: 'uk',
   macron: 'france',
   scholz: 'germany',
-  trudeau: 'canada',
+  carney: 'canada',
   nato_chief: 'nato',
   eu_president: 'eu',
   frederiksen: 'denmark',

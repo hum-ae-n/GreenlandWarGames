@@ -1,7 +1,8 @@
-import { GameState, FactionId, BilateralRelation, TensionLevel, MilitaryUnitState } from '../types/game';
+import { GameState, FactionId, BilateralRelation, TensionLevel, MilitaryUnitState, EconomicStateData } from '../types/game';
 import { FACTIONS } from '../data/factions';
 import { ZONES } from '../data/zones';
 import { generateStartingUnits } from './military';
+import { createInitialEconomicState } from './economics';
 
 const TENSION_LEVELS: TensionLevel[] = ['cooperation', 'competition', 'confrontation', 'crisis', 'conflict'];
 
@@ -136,8 +137,52 @@ export const createInitialGameState = (playerFaction: FactionId): GameState => {
     nuclearReadiness: 'peacetime',
     combatSurprise: null,
     notifications: [],
+    // Reputation system - starts neutral/positive
+    playerReputation: {
+      militarism: 50,
+      reliability: 70,
+      diplomacy: 60,
+      environmentalism: 50,
+      humanRights: 60,
+      economicFairness: 60,
+      overallReputation: 60,
+      treatiesBroken: 0,
+      treatiesHonored: 0,
+      warsDeclared: 0,
+      peaceTreatiesSigned: 0,
+      zonesConquered: 0,
+      zonesLiberated: 0,
+    },
+    // Economics system
+    economicState: convertEconomicState(createInitialEconomicState()),
   };
 };
+
+// Convert internal economic state to serializable format
+const convertEconomicState = (state: ReturnType<typeof createInitialEconomicState>): EconomicStateData => ({
+  tradeDeals: state.tradeDeals.map(d => ({
+    id: d.id,
+    type: d.type,
+    factions: d.factions,
+    name: d.name,
+    description: d.description,
+    turnsRemaining: d.turnsRemaining,
+    isActive: d.isActive,
+    signedOnTurn: d.signedOnTurn,
+  })),
+  activeSanctions: state.activeSanctions.map(s => ({
+    id: s.id,
+    type: s.type,
+    imposedBy: s.imposedBy,
+    targetFaction: s.targetFaction,
+    name: s.name,
+    description: s.description,
+    turnsActive: s.turnsActive,
+    worldReaction: s.worldReaction,
+  })),
+  marketPrices: state.marketPrices,
+  globalTradeIndex: state.globalTradeIndex,
+});
 
 export const getTensionBetween = (
   state: GameState,
