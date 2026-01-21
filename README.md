@@ -66,13 +66,27 @@ military brinkmanship.
 - **Hex-based polar map** with realistic Arctic geography
 - **Dynamic tension system** from cooperation to all-out conflict
 - **Active AI opponents** that expand, build military, and react to your moves
+- **Territory control legend** showing real-time faction percentages
 
 ### Diplomacy & Politics
 - **Civ V-style leader interactions** - World leaders react to your moves
 - **Diplomatic message system** - Receive threats, proposals, and warnings
 - **Legitimacy mechanics** - Your international standing matters
 - **Crisis events** - Navigate territorial disputes and incidents
-- **Reputation system** - Your decisions affect how the world perceives you
+- **Reputation system** - Your decisions affect how the world perceives you across 6 dimensions
+
+### Economic System (NEW in v0.13)
+- **Trade Deals** - 6 types: Resource Exchange, Shipping Rights, Technology Sharing, Joint Development, Military Access, Energy Contracts
+- **Sanctions** - 5 types: Trade Embargo, Sector Sanctions, Financial Sanctions, Technology Ban, Shipping Ban
+- **Supply Chains** - Dependencies and vulnerabilities that can be exploited
+- **Dynamic Market Prices** - Oil, gas, minerals, and shipping prices fluctuate based on world events
+
+### Technology Research (NEW in v0.14)
+- **24 technologies** across 4 categories with 3 tiers of progression
+- **Military Tech** - Arctic Warfare, Submarines, Missile Defense, Hypersonic Weapons, Drones
+- **Economic Tech** - Offshore Drilling, Deep Sea Mining, LNG Infrastructure, Nuclear Icebreakers
+- **Diplomatic Tech** - Arctic Council Influence, Intelligence Networks, Treaty Frameworks
+- **Infrastructure** - Research Stations, Arctic Ports, Satellite Networks, Megastructures
 
 ### Military Operations
 - **Naval units** - Icebreakers, submarines, patrol vessels, carriers
@@ -185,7 +199,7 @@ military brinkmanship.
 │   🇬🇧 STARMER        "Britain maintains interests in polar regions."      │
 │   🇫🇷 MACRON         "Europe must speak with one voice here."             │
 │   🇩🇪 SCHOLZ         "Let us approach this systematically."               │
-│   🇨🇦 TRUDEAU        "The Northwest Passage is Canadian. Period."         │
+│   🇨🇦 CARNEY         "The Northwest Passage is Canadian. Period."         │
 │                                                                            │
 │   🏛️ NATO CHIEF      "Article 5 applies even in the Arctic."              │
 │   🇪🇺 EU PRESIDENT   "Environmental protection must come first."          │
@@ -257,15 +271,19 @@ GreenlandWarGames/
 │   │
 │   ├── components/
 │   │   ├── Advisor.tsx          # Strategic advisor system
-│   │   ├── ArcticMap.tsx        # Polar hex map renderer
+│   │   ├── ArcticMap.tsx        # Polar hex map with territory legend
 │   │   ├── CrisisModal.tsx      # Crisis event dialogs
 │   │   ├── Dashboard.tsx        # Resource & status display
+│   │   ├── EconomicsPanel.tsx   # Trade, sanctions, supply chains (NEW)
 │   │   ├── FactionSelect.tsx    # Faction selection screen
 │   │   ├── GameOver.tsx         # Victory/defeat celebration
 │   │   ├── LeaderDialog.tsx     # Leader conversation popups
 │   │   ├── LeaderPopup.tsx      # Civ V-style random popups
 │   │   ├── MilitaryPanel.tsx    # Unit management & combat
+│   │   ├── ObjectivesPanel.tsx  # Objectives tracking
 │   │   ├── PixelArt.tsx         # 16x16 leader portraits
+│   │   ├── ReputationPanel.tsx  # Reputation display (NEW)
+│   │   ├── TechPanel.tsx        # Technology research tree (NEW)
 │   │   └── Tutorial.tsx         # New player onboarding
 │   │
 │   ├── data/
@@ -276,10 +294,12 @@ GreenlandWarGames/
 │   │   ├── actions.ts           # Action execution logic
 │   │   ├── ai.ts                # AI opponent decision engine
 │   │   ├── drama.ts             # Events & achievements
+│   │   ├── economics.ts         # Trade deals, sanctions (NEW)
 │   │   ├── leaders.ts           # Leader AI & reactions
 │   │   ├── military.ts          # Combat resolution
 │   │   ├── reputation.ts        # Player reputation system
 │   │   ├── state.ts             # Game state management
+│   │   ├── technology.ts        # Tech tree system (NEW)
 │   │   ├── turns.ts             # Turn progression
 │   │   └── victory.ts           # Victory conditions
 │   │
@@ -313,6 +333,14 @@ GreenlandWarGames/
 │  ► The advisor provides contextual guidance - listen to them                │
 │                                                                             │
 │  ► Nuclear escalation has no winners - avoid DEFCON 1                       │
+│                                                                             │
+│  ► Trade deals provide steady income - diversify your partners              │
+│                                                                             │
+│  ► Sanctions hurt but damage your reputation - use sparingly                │
+│                                                                             │
+│  ► Research Tier 1 techs early for cumulative bonuses                       │
+│                                                                             │
+│  ► Supply chain vulnerabilities are strategic weaknesses                    │
 │                                                                             │
 ╰─────────────────────────────────────────────────────────────────────────────╯
 ```
