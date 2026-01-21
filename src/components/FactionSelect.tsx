@@ -316,13 +316,22 @@ export const FactionSelect: React.FC<FactionSelectProps> = ({ onSelect }) => {
       {/* Credits */}
       <div className="credits">
         <div className="credits-content">
-          <span className="credits-label">Created by</span>
+          <span className="credits-label">Developed by</span>
           <span className="credits-names">
             <span className="credit-claude">Claude</span>
             <span className="credit-and">&</span>
-            <span className="credit-kaipability">Kaipability</span>
+            <span className="credit-kaipability">Kaipability Ltd.</span>
           </span>
         </div>
+        <div className="credits-links">
+          <a href="https://www.kaipability.com" target="_blank" rel="noopener noreferrer">kaipability.com</a>
+          <span className="link-sep">|</span>
+          <a href="https://www.airl.io" target="_blank" rel="noopener noreferrer">airl.io</a>
+          <span className="link-sep">|</span>
+          <a href="https://github.com/hum-ae-n/GreenlandWarGames" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+        <div className="credits-copyright">© 2025 Kaipability Ltd. All Rights Reserved.</div>
+        <div className="credits-disclaimer">This is a game, not real life.</div>
         <div className="version">v0.11</div>
       </div>
     </div>
