@@ -102,20 +102,20 @@ const LEADER_MESSAGES: Record<LeaderId, LeaderMessage[]> = {
       "Our missiles can reach anywhere. Remember that.",
     ]},
   ],
-  trudeau: [
+  carney: [
     { type: 'greeting', messages: [
-      "Canada welcomes cooperation in the Arctic.",
-      "The Northwest Passage is Canadian. But we can talk.",
-      "Let's find a peaceful solution, eh?"
+      "Canada sees value in Arctic cooperation.",
+      "The Northwest Passage is Canadian territory. But let's discuss.",
+      "A sensible approach benefits everyone."
     ]},
     { type: 'warning', messages: [
-      "Canadian sovereignty is non-negotiable.",
-      "Our Arctic Rangers know every inch of this territory.",
-      "Please respect international law up here."
+      "Canadian sovereignty is not negotiable.",
+      "Our Arctic investments are substantial. We'll protect them.",
+      "Let's keep this within reasonable bounds."
     ]},
     { type: 'request', messages: [
-      "Perhaps we could discuss environmental protections?",
-      "Indigenous rights must be respected. Can we agree on that?",
+      "Perhaps we could discuss sustainable development terms?",
+      "Economic cooperation yields better returns than conflict.",
     ]},
   ],
   frederiksen: [
@@ -406,7 +406,7 @@ export const PopupManager: React.FC<PopupManagerProps> = ({ context, enabled, ex
         // Pick a random leader (excluding player faction leaders)
         const allLeaders: LeaderId[] = [
           'trump', 'putin', 'xi', 'kim',
-          'trudeau', 'frederiksen', 'macron', 'scholz', 'starmer',
+          'carney', 'frederiksen', 'macron', 'scholz', 'starmer',
           'nato_chief', 'eu_president', 'store', 'stubb',
           'modi', 'erdogan', 'indigenous_elder'
         ];

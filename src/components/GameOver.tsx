@@ -21,7 +21,7 @@ interface GameOverProps {
 // All leaders for the celebration
 const ALL_LEADERS: LeaderId[] = [
   'trump', 'putin', 'xi', 'kim',
-  'starmer', 'macron', 'scholz', 'trudeau',
+  'starmer', 'macron', 'scholz', 'carney',
   'nato_chief', 'eu_president', 'frederiksen', 'store',
   'stubb', 'modi', 'erdogan', 'indigenous_elder'
 ];
@@ -94,7 +94,7 @@ export const GameOver: React.FC<GameOverProps> = ({ gameState, onRestart }) => {
       if (leader && !speakingOrder.includes(leader)) speakingOrder.push(leader);
     });
 
-    const otherLeaders: LeaderId[] = ['nato_chief', 'trudeau', 'frederiksen', 'indigenous_elder'];
+    const otherLeaders: LeaderId[] = ['nato_chief', 'carney', 'frederiksen', 'indigenous_elder'];
     otherLeaders.forEach(l => {
       if (!speakingOrder.includes(l)) speakingOrder.push(l);
     });
