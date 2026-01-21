@@ -1,0 +1,335 @@
+/* Objectives Panel Styles */
+
+.objectives-panel {
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #4a90d9;
+  border-radius: 8px;
+  padding: 16px;
+  color: #fff;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.objectives-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #4a90d9;
+}
+
+.objectives-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #ffd700;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 8px;
+}
+
+.close-btn:hover {
+  color: #fff;
+}
+
+.objectives-intro {
+  color: #aaa;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.victory-paths h3,
+.danger-section h3,
+.objectives-tips h3 {
+  font-size: 1rem;
+  margin: 16px 0 8px;
+  color: #ffd700;
+}
+
+/* Objective Cards */
+.objective-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.objective-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #4a90d9;
+}
+
+.objective-card.unlikely {
+  opacity: 0.6;
+}
+
+.objective-card.expanded {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.objective-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.objective-icon {
+  font-size: 2rem;
+  min-width: 40px;
+  text-align: center;
+}
+
+.objective-info {
+  flex: 1;
+}
+
+.objective-info h4 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.objective-desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+/* Progress Circle */
+.progress-circle {
+  width: 50px;
+  height: 50px;
+}
+
+.progress-circle svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-bg {
+  fill: none;
+  stroke: #333;
+  stroke-width: 3;
+}
+
+.progress-fill {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s ease;
+}
+
+.progress-text {
+  fill: #fff;
+  font-size: 8px;
+  text-anchor: middle;
+  transform: rotate(90deg);
+  transform-origin: center;
+}
+
+/* Objective Details */
+.objective-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #444;
+  font-size: 0.85rem;
+}
+
+.how-to-win {
+  color: #4caf50;
+  margin-bottom: 6px;
+}
+
+.current-progress {
+  color: #2196f3;
+}
+
+.unlikely-warning {
+  color: #ff9800;
+  margin-top: 8px;
+  padding: 6px;
+  background: rgba(255, 152, 0, 0.1);
+  border-radius: 4px;
+}
+
+/* Danger Section */
+.danger-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.danger-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.danger-card.warning {
+  border-color: #ff9800;
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.danger-card.danger {
+  border-color: #f44336;
+  background: rgba(244, 67, 54, 0.15);
+  animation: pulse-danger 1s ease-in-out infinite;
+}
+
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.danger-icon {
+  font-size: 1.5rem;
+}
+
+.danger-info h4 {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.danger-info p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.danger-bar {
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.danger-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Tips Section */
+.objectives-tips ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.objectives-tips li {
+  padding: 6px 0;
+  font-size: 0.85rem;
+  color: #ccc;
+  border-bottom: 1px dotted #333;
+}
+
+.objectives-tips li:last-child {
+  border-bottom: none;
+}
+
+.objectives-tips strong {
+  color: #ffd700;
+}
+
+/* Mini Objectives (Sidebar) */
+.objectives-mini {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #4a90d9;
+  border-radius: 6px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.objectives-mini:hover {
+  background: rgba(74, 144, 217, 0.2);
+  border-color: #ffd700;
+}
+
+.mini-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+.danger-indicator {
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.mini-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-icon {
+  font-size: 1.3rem;
+}
+
+.mini-info {
+  flex: 1;
+}
+
+.mini-name {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.mini-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.mini-bar {
+  flex: 1;
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mini-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  transition: width 0.3s ease;
+}
+
+.mini-pct {
+  font-size: 0.8rem;
+  color: #4caf50;
+  min-width: 35px;
+  text-align: right;
+}
+
+.mini-hint {
+  font-size: 0.7rem;
+  color: #666;
+  margin-top: 6px;
+  text-align: center;
+}

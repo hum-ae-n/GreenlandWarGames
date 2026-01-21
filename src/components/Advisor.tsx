@@ -215,6 +215,87 @@ const getAdvisorTips = (gameState: GameState, selectedZone: string | null, advis
     }
   }
 
+  // VICTORY-FOCUSED ADVICE
+  const cooperativeRelations = playerRelations.filter(r => r.tensionLevel === 'cooperation').length;
+  const allCooperative = cooperativeRelations === playerRelations.length;
+  const allianceCount = playerRelations.filter(r => r.tensionLevel === 'cooperation' && r.treaties.length > 0).length;
+
+  // Nobel Peace Prize path
+  if (allCooperative && gameState.turn >= 3) {
+    tips.push({
+      id: 'nobel_path',
+      priority: 80,
+      message: `You're on the path to the Nobel Peace Prize! Maintain peace with all factions for 5 turns.`,
+      action: "Continue diplomatic engagement, avoid military action",
+      category: 'strategic',
+    });
+  } else if (cooperativeRelations >= playerRelations.length - 1 && advisorStyle === 'diplomatic') {
+    tips.push({
+      id: 'near_peace',
+      priority: 72,
+      message: `Close to universal peace! Improve relations with one more faction for Nobel Prize path.`,
+      action: "Focus diplomacy on remaining hostile factions",
+      category: 'suggestion',
+    });
+  }
+
+  // Hegemonic victory path
+  if (controlPercent >= 45) {
+    tips.push({
+      id: 'hegemonic_path',
+      priority: 83,
+      message: `You control ${controlPercent}% of the Arctic! 60% needed for Hegemonic Victory.`,
+      action: "Expand into remaining unclaimed or contested zones",
+      category: 'strategic',
+    });
+  }
+
+  // Economic victory path
+  if (player.resources.economicOutput >= 350) {
+    tips.push({
+      id: 'economic_path',
+      priority: 81,
+      message: `Economy at ${player.resources.economicOutput}/500! Economic Victory within reach.`,
+      action: "Invest in resource-rich zones, avoid costly conflicts",
+      category: 'strategic',
+    });
+  }
+
+  // Diplomatic victory path
+  if (allianceCount >= 2) {
+    tips.push({
+      id: 'diplomatic_path',
+      priority: 77,
+      message: `${allianceCount}/4 alliances formed! Grand Alliance Victory possible.`,
+      action: "Negotiate treaties with remaining factions",
+      category: 'suggestion',
+    });
+  }
+
+  // Military supremacy path
+  const playerStrength = playerUnits.reduce((sum, u) => sum + u.strength, 0);
+  const enemyStrength = opponentUnits.reduce((sum, u) => sum + u.strength, 0);
+  if (playerStrength > enemyStrength * 2 && advisorStyle === 'aggressive' || advisorStyle === 'militant') {
+    tips.push({
+      id: 'military_path',
+      priority: 79,
+      message: `Military supremacy achieved! Consider pressing your advantage.`,
+      action: "Expand territory through force projection",
+      category: 'strategic',
+    });
+  }
+
+  // Scientific victory hint
+  if (player.resources.legitimacy >= 80 && gameState.globalIceExtent >= 60) {
+    tips.push({
+      id: 'scientific_path',
+      priority: 74,
+      message: `High legitimacy (${player.resources.legitimacy}%) and stable ice (${gameState.globalIceExtent}%). Climate Savior path viable!`,
+      action: "Maintain legitimacy, avoid actions that harm the environment",
+      category: 'suggestion',
+    });
+  }
+
   // Late game
   if (gameState.turn >= 16) {
     tips.push({

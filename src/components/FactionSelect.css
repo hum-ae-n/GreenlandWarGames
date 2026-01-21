@@ -431,6 +431,60 @@
   font-size: 14px;
 }
 
+.win-intro {
+  color: #aaa;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* How to Lose */
+.how-to-lose {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 30px auto;
+  text-align: center;
+}
+
+.how-to-lose h3 {
+  color: #f44336;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.defeat-conditions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  padding: 0 20px;
+}
+
+.defeat-card {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 10px;
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.defeat-card:hover {
+  border-color: rgba(244, 67, 54, 0.6);
+  background: rgba(244, 67, 54, 0.15);
+}
+
+.defeat-icon {
+  font-size: 24px;
+}
+
+.defeat-text {
+  color: #ff8a80;
+  font-size: 12px;
+  text-align: left;
+}
+
 /* Quick Guide */
 .quick-guide {
   position: relative;

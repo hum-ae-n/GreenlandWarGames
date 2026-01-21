@@ -222,22 +222,66 @@ export const FactionSelect: React.FC<FactionSelectProps> = ({ onSelect }) => {
 
       {/* How to Win */}
       <div className="how-to-win">
-        <h3>🏆 How to Win</h3>
+        <h3>🏆 Victory Paths</h3>
+        <p className="win-intro">Choose your strategy - multiple paths lead to victory!</p>
         <div className="victory-conditions">
           <div className="victory-card">
             <span className="victory-icon">👑</span>
-            <h4>Hegemonic Victory</h4>
-            <p>Control 60% or more of all Arctic zones</p>
+            <h4>Arctic Hegemon</h4>
+            <p>Control 60%+ of all Arctic zones</p>
           </div>
           <div className="victory-card">
-            <span className="victory-icon">💎</span>
-            <h4>Economic Victory</h4>
+            <span className="victory-icon">💰</span>
+            <h4>Economic Superpower</h4>
             <p>Accumulate 500+ economic output</p>
           </div>
           <div className="victory-card">
-            <span className="victory-icon">🎯</span>
-            <h4>Points Victory</h4>
+            <span className="victory-icon">🕊️</span>
+            <h4>Nobel Peace Prize</h4>
+            <p>Achieve peace with ALL factions for 5+ turns</p>
+          </div>
+          <div className="victory-card">
+            <span className="victory-icon">🔬</span>
+            <h4>Climate Savior</h4>
+            <p>High legitimacy (90+) + protect Arctic ice</p>
+          </div>
+          <div className="victory-card">
+            <span className="victory-icon">🤝</span>
+            <h4>Grand Alliance</h4>
+            <p>Form alliance treaties with 4+ factions</p>
+          </div>
+          <div className="victory-card">
+            <span className="victory-icon">⚔️</span>
+            <h4>Supreme Commander</h4>
+            <p>Achieve total military supremacy</p>
+          </div>
+          <div className="victory-card">
+            <span className="victory-icon">🏆</span>
+            <h4>Survivor</h4>
             <p>Highest victory points after 20 turns</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Ways to Lose */}
+      <div className="how-to-lose">
+        <h3>☠️ Ways to Lose</h3>
+        <div className="defeat-conditions">
+          <div className="defeat-card">
+            <span className="defeat-icon">☢️</span>
+            <span className="defeat-text">Nuclear War - Everyone loses!</span>
+          </div>
+          <div className="defeat-card">
+            <span className="defeat-icon">🌊</span>
+            <span className="defeat-text">Climate Collapse - Ice melts completely</span>
+          </div>
+          <div className="defeat-card">
+            <span className="defeat-icon">💀</span>
+            <span className="defeat-text">Regime Collapse - Legitimacy hits zero</span>
+          </div>
+          <div className="defeat-card">
+            <span className="defeat-icon">🏳️</span>
+            <span className="defeat-text">Total Defeat - Lose all territory & military</span>
           </div>
         </div>
       </div>
@@ -252,11 +296,11 @@ export const FactionSelect: React.FC<FactionSelectProps> = ({ onSelect }) => {
           </div>
           <div className="guide-step">
             <span className="step-number">2</span>
-            <span className="step-text">Use Actions tab for diplomacy & economics</span>
+            <span className="step-text">Your advisor will suggest actions based on your chosen strategy</span>
           </div>
           <div className="guide-step">
             <span className="step-number">3</span>
-            <span className="step-text">Build military units in the Military tab</span>
+            <span className="step-text">Build military in Military tab, or focus on diplomacy</span>
           </div>
           <div className="guide-step">
             <span className="step-number">4</span>
@@ -264,7 +308,7 @@ export const FactionSelect: React.FC<FactionSelectProps> = ({ onSelect }) => {
           </div>
           <div className="guide-step">
             <span className="step-number">5</span>
-            <span className="step-text">End turn to advance time and trigger events</span>
+            <span className="step-text">Check Objectives panel to track your progress toward victory</span>
           </div>
         </div>
       </div>
@@ -279,7 +323,7 @@ export const FactionSelect: React.FC<FactionSelectProps> = ({ onSelect }) => {
             <span className="credit-kaipability">Kaipability</span>
           </span>
         </div>
-        <div className="version">v0.10</div>
+        <div className="version">v0.11</div>
       </div>
     </div>
   );
