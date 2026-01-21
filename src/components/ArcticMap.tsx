@@ -180,24 +180,28 @@ export const ArcticMap: React.FC<ArcticMapProps> = ({
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Draw zones
+    // Draw zones - first pass for territory backgrounds
     Object.values(gameState.zones).forEach((zone: MapZone) => {
       const center = hexToScreen(zone.hex, config);
       const corners = hexCorners(center);
 
       // Determine fill color based on controller
-      let fillColor = '#1a3a5c'; // Unclaimed
+      let fillColor = '#0a1a30'; // Unclaimed - dark
+      const isPlayerZone = zone.controller === gameState.playerFaction;
+      const isContested = zone.contestedBy.length > 0;
+
       if (zone.controller) {
         const faction = FACTIONS[zone.controller];
-        fillColor = faction ? faction.color + '80' : '#1a3a5c';
+        // Use more saturated colors for controlled zones
+        fillColor = faction ? faction.color + (isPlayerZone ? 'a0' : '70') : '#1a3a5c';
       }
 
       // Highlight selected/hovered zones
       if (zone.id === selectedZone) {
-        fillColor = '#ffffff40';
+        fillColor = '#ffffff50';
       } else if (zone.id === hoveredZone) {
         fillColor = zone.controller
-          ? FACTIONS[zone.controller].color + 'c0'
+          ? FACTIONS[zone.controller].color + 'd0'
           : '#2a5a8c';
       }
 
@@ -210,6 +214,39 @@ export const ArcticMap: React.FC<ArcticMapProps> = ({
       ctx.closePath();
       ctx.fillStyle = fillColor;
       ctx.fill();
+
+      // Draw glow effect for player's zones
+      if (isPlayerZone && zone.id !== selectedZone) {
+        ctx.save();
+        ctx.shadowColor = FACTIONS[gameState.playerFaction].color;
+        ctx.shadowBlur = 10;
+        ctx.strokeStyle = FACTIONS[gameState.playerFaction].color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw contested zone pattern (diagonal lines)
+      if (isContested) {
+        ctx.save();
+        ctx.clip();
+        ctx.strokeStyle = '#ff880060';
+        ctx.lineWidth = 1;
+        for (let i = -50; i < 100; i += 8) {
+          ctx.beginPath();
+          ctx.moveTo(center.x - 30 + i, center.y - 30);
+          ctx.lineTo(center.x - 30 + i + 60, center.y + 30);
+          ctx.stroke();
+        }
+        ctx.restore();
+        // Redraw the hex for proper border
+        ctx.beginPath();
+        ctx.moveTo(corners[0].x, corners[0].y);
+        for (let i = 1; i < corners.length; i++) {
+          ctx.lineTo(corners[i].x, corners[i].y);
+        }
+        ctx.closePath();
+      }
 
       // Calculate threat level for this zone
       let threatLevel = 0;
@@ -230,10 +267,15 @@ export const ArcticMap: React.FC<ArcticMapProps> = ({
         }
       }
 
-      // Draw hex border (thicker for threatened zones)
+      // Draw hex border with faction color for controlled zones
       const isChokepoint = zone.type === 'chokepoint';
-      ctx.strokeStyle = threatLevel > 0 ? threatColor : (isChokepoint ? '#ffcc00' : '#3a6a9c');
-      ctx.lineWidth = threatLevel > 2 ? 3 : (threatLevel > 0 ? 2 : (isChokepoint ? 2 : 1));
+      if (zone.controller && zone.id !== selectedZone) {
+        ctx.strokeStyle = FACTIONS[zone.controller].color;
+        ctx.lineWidth = isPlayerZone ? 3 : 2;
+      } else {
+        ctx.strokeStyle = threatLevel > 0 ? threatColor : (isChokepoint ? '#ffcc00' : '#3a6a9c');
+        ctx.lineWidth = threatLevel > 2 ? 3 : (threatLevel > 0 ? 2 : (isChokepoint ? 2 : 1));
+      }
       ctx.stroke();
 
       // Draw zone name
@@ -346,6 +388,98 @@ export const ArcticMap: React.FC<ArcticMapProps> = ({
         config.centerY + labelRadius * Math.sin(rad)
       );
     });
+
+    // Draw territory control legend (bottom left)
+    const totalZones = Object.keys(gameState.zones).length;
+    const zoneControl: Record<string, number> = {};
+
+    Object.values(gameState.zones).forEach(zone => {
+      const controller = zone.controller || 'unclaimed';
+      zoneControl[controller] = (zoneControl[controller] || 0) + 1;
+    });
+
+    // Draw legend background
+    const legendX = 10;
+    const legendY = height - 140;
+    ctx.fillStyle = 'rgba(10, 22, 40, 0.9)';
+    ctx.fillRect(legendX, legendY, 130, 130);
+    ctx.strokeStyle = '#3a6a9c';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(legendX, legendY, 130, 130);
+
+    ctx.font = 'bold 10px monospace';
+    ctx.fillStyle = '#8ab4f8';
+    ctx.textAlign = 'left';
+    ctx.fillText('TERRITORY CONTROL', legendX + 8, legendY + 15);
+
+    // Draw faction entries
+    let legendEntryY = legendY + 30;
+    const majorFactions: FactionId[] = ['usa', 'russia', 'china', 'eu', gameState.playerFaction];
+    const uniqueFactions = [...new Set(majorFactions)];
+
+    uniqueFactions.forEach(factionId => {
+      const count = zoneControl[factionId] || 0;
+      if (count > 0 || factionId === gameState.playerFaction) {
+        const faction = FACTIONS[factionId];
+        const percent = Math.round((count / totalZones) * 100);
+
+        // Color box
+        ctx.fillStyle = faction.color;
+        ctx.fillRect(legendX + 8, legendEntryY - 8, 12, 12);
+
+        // Player indicator
+        if (factionId === gameState.playerFaction) {
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(legendX + 7, legendEntryY - 9, 14, 14);
+        }
+
+        // Faction name and percentage
+        ctx.font = '9px monospace';
+        ctx.fillStyle = '#c9d1d9';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${faction.shortName}`, legendX + 25, legendEntryY);
+
+        // Percentage bar
+        ctx.fillStyle = '#1a3a5c';
+        ctx.fillRect(legendX + 65, legendEntryY - 6, 50, 8);
+        ctx.fillStyle = faction.color;
+        ctx.fillRect(legendX + 65, legendEntryY - 6, percent * 0.5, 8);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '8px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`${percent}%`, legendX + 122, legendEntryY);
+
+        legendEntryY += 18;
+      }
+    });
+
+    // Add unclaimed count
+    const unclaimedCount = zoneControl['unclaimed'] || 0;
+    if (unclaimedCount > 0) {
+      const percent = Math.round((unclaimedCount / totalZones) * 100);
+      ctx.fillStyle = '#1a3a5c';
+      ctx.fillRect(legendX + 8, legendEntryY - 8, 12, 12);
+      ctx.strokeStyle = '#3a6a9c';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(legendX + 8, legendEntryY - 8, 12, 12);
+
+      ctx.font = '9px monospace';
+      ctx.fillStyle = '#6e7681';
+      ctx.textAlign = 'left';
+      ctx.fillText('Unclaimed', legendX + 25, legendEntryY);
+
+      ctx.fillStyle = '#1a3a5c';
+      ctx.fillRect(legendX + 65, legendEntryY - 6, 50, 8);
+      ctx.fillStyle = '#3a6a9c';
+      ctx.fillRect(legendX + 65, legendEntryY - 6, percent * 0.5, 8);
+
+      ctx.fillStyle = '#8b949e';
+      ctx.font = '8px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${percent}%`, legendX + 122, legendEntryY);
+    }
 
   }, [gameState, selectedZone, hoveredZone, width, height, config]);
 
