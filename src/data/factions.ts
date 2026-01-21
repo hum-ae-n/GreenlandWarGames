@@ -54,6 +54,19 @@ export const FACTIONS: Record<FactionId, Faction> = {
     victoryPoints: 0,
   },
 
+  eu: {
+    id: 'eu',
+    name: 'European Union',
+    shortName: 'EU',
+    color: '#003399',
+    resources: createResources(90, 180, 4, 50, 85),
+    isPlayable: true,
+    description: 'A powerful economic bloc with Arctic interests through Nordic members. Focused on climate science and sustainable development.',
+    specialMechanic: 'Regulatory Power: Can impose environmental standards. Research Collaboration: Bonus to Arctic science.',
+    controlledZones: [],
+    victoryPoints: 0,
+  },
+
   canada: {
     id: 'canada',
     name: 'Canada',
@@ -120,7 +133,7 @@ export const FACTIONS: Record<FactionId, Faction> = {
   },
 };
 
-export const PLAYABLE_FACTIONS: FactionId[] = ['usa', 'russia', 'china'];
+export const PLAYABLE_FACTIONS: FactionId[] = ['usa', 'russia', 'china', 'eu'];
 
 export const getFactionById = (id: FactionId): Faction => FACTIONS[id];
 

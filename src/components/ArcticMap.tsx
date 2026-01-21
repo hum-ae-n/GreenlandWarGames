@@ -255,6 +255,7 @@ export const ArcticMap: React.FC<ArcticMapProps> = ({
           usa: '🇺🇸',
           russia: '🇷🇺',
           china: '🇨🇳',
+          eu: '🇪🇺',
           nato: '🏛️',
           canada: '🇨🇦',
           norway: '🇳🇴',
@@ -504,6 +505,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
             {zone.controller === 'usa' ? '🇺🇸' :
              zone.controller === 'russia' ? '🇷🇺' :
              zone.controller === 'china' ? '🇨🇳' :
+             zone.controller === 'eu' ? '🇪🇺' :
              zone.controller === 'canada' ? '🇨🇦' :
              zone.controller === 'norway' ? '🇳🇴' :
              zone.controller === 'denmark' ? '🇩🇰' : '🏛️'}

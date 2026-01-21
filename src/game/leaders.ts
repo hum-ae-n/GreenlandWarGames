@@ -723,6 +723,7 @@ export const getLeaderForFaction = (factionId: FactionId): LeaderId | null => {
     usa: 'trump',
     russia: 'putin',
     china: 'xi',
+    eu: 'eu_president',
     canada: 'trudeau',
     denmark: 'frederiksen',
     norway: 'store',

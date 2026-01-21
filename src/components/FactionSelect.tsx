@@ -34,6 +34,7 @@ const FACTION_LEADERS: Record<FactionId, LeaderId> = {
   usa: 'trump',
   russia: 'putin',
   china: 'xi',
+  eu: 'eu_president',
   canada: 'trudeau',
   denmark: 'frederiksen',
   norway: 'store',
@@ -278,7 +279,7 @@ export const FactionSelect: React.FC<FactionSelectProps> = ({ onSelect }) => {
             <span className="credit-kaipability">Kaipability</span>
           </span>
         </div>
-        <div className="version">v0.8</div>
+        <div className="version">v0.10</div>
       </div>
     </div>
   );
