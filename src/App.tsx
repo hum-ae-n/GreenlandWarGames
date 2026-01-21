@@ -24,7 +24,8 @@ import {
 import { Tutorial, HelpButton } from './components/Tutorial';
 import { PopupManager } from './components/LeaderPopup';
 import { Advisor, DiplomacyPanel } from './components/Advisor';
-import { LeaderId } from './components/PixelArt';
+import { LeaderId, PixelPortrait, LEADER_NAMES } from './components/PixelArt';
+import { FACTIONS } from './data/factions';
 import { getChiptuneEngine } from './audio/ChiptuneEngine';
 import './App.css';
 
@@ -492,14 +493,31 @@ function App() {
       return order.indexOf(r.tensionLevel) > order.indexOf(max) ? r.tensionLevel : max;
     }, 'cooperation' as string);
 
+  // Get player's leader
+  const playerLeader = getLeaderForFaction(gameState.playerFaction) as LeaderId;
+  const playerFactionData = FACTIONS[gameState.playerFaction];
+
   return (
     <div className="game-container">
       <header className="game-header">
-        <h1>ARCTIC DOMINION</h1>
-        <div className="header-status">
-          <span className="year">{gameState.year}</span>
-          <span className="season">{gameState.season}</span>
-          <span className="turn">Turn {gameState.turn}/20</span>
+        <div className="header-player">
+          <div className="player-portrait">
+            <PixelPortrait leader={playerLeader} size={48} />
+          </div>
+          <div className="player-info">
+            <span className="player-faction" style={{ color: playerFactionData.color }}>
+              {playerFactionData.shortName}
+            </span>
+            <span className="player-leader">{LEADER_NAMES[playerLeader]}</span>
+          </div>
+        </div>
+        <div className="header-title">
+          <h1>ARCTIC DOMINION</h1>
+          <div className="header-status">
+            <span className="year">{gameState.year}</span>
+            <span className="season">{gameState.season}</span>
+            <span className="turn">Turn {gameState.turn}/20</span>
+          </div>
         </div>
         <AudioControls maxTension={maxTension as any} />
       </header>

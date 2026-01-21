@@ -1,6 +1,6 @@
 // Core game types for Arctic Dominion
 
-export type FactionId = 'usa' | 'russia' | 'china' | 'canada' | 'denmark' | 'norway' | 'nato' | 'indigenous';
+export type FactionId = 'usa' | 'russia' | 'china' | 'eu' | 'canada' | 'denmark' | 'norway' | 'nato' | 'indigenous';
 
 export type ZoneType = 'territorial' | 'eez' | 'continental_shelf' | 'international' | 'chokepoint';
 

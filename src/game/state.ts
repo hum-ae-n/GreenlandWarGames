@@ -46,6 +46,24 @@ const createInitialRelations = (): BilateralRelation[] => {
       } else if (f2 === 'indigenous' || f1 === 'indigenous') {
         tensionLevel = 'cooperation';
         tensionValue = 40;
+      } else if ((f1 === 'eu' && f2 === 'usa') || (f1 === 'usa' && f2 === 'eu')) {
+        tensionLevel = 'cooperation';
+        tensionValue = 30;
+        treaties.push('NATO Partner', 'Transatlantic Accord');
+      } else if ((f1 === 'eu' && f2 === 'russia') || (f1 === 'russia' && f2 === 'eu')) {
+        tensionLevel = 'confrontation';
+        tensionValue = 65;
+      } else if ((f1 === 'eu' && f2 === 'china') || (f1 === 'china' && f2 === 'eu')) {
+        tensionLevel = 'competition';
+        tensionValue = 45;
+      } else if ((f1 === 'eu' && f2 === 'norway') || (f1 === 'norway' && f2 === 'eu')) {
+        tensionLevel = 'cooperation';
+        tensionValue = 20;
+        treaties.push('EEA Agreement');
+      } else if ((f1 === 'eu' && f2 === 'denmark') || (f1 === 'denmark' && f2 === 'eu')) {
+        tensionLevel = 'cooperation';
+        tensionValue = 15;
+        treaties.push('EU Member');
       }
 
       relations.push({
@@ -83,6 +101,7 @@ export const createInitialGameState = (playerFaction: FactionId): GameState => {
     ...convertUnitsToState('usa'),
     ...convertUnitsToState('russia'),
     ...convertUnitsToState('china'),
+    ...convertUnitsToState('eu'),
     ...convertUnitsToState('canada'),
     ...convertUnitsToState('norway'),
     ...convertUnitsToState('denmark'),

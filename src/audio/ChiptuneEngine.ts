@@ -57,15 +57,43 @@ const PROGRESSIONS: Record<TensionMood, string[][]> = {
   ],
 };
 
-// Melodic patterns for each mood
-const MELODIES: Record<TensionMood, string[]> = {
-  peaceful: ['E4', 'G4', 'A4', 'G4', 'E4', 'D4', 'C4', 'D4', 'E4', 'REST', 'G4', 'E4', 'D4', 'C4', 'D4', 'E4'],
-  tense: ['A4', 'REST', 'E4', 'REST', 'A4', 'G4', 'E4', 'REST', 'A4', 'REST', 'B4', 'A4', 'G4', 'E4', 'REST', 'REST'],
-  crisis: ['E4', 'E4', 'E4', 'REST', 'E4', 'E4', 'F4', 'E4', 'D4', 'REST', 'E4', 'E4', 'E4', 'F4', 'G4', 'REST'],
-  combat: ['E4', 'E4', 'E5', 'E4', 'E4', 'E5', 'D5', 'E5', 'E4', 'E4', 'E5', 'E4', 'G4', 'E5', 'D5', 'C5'],
-  menu: ['G4', 'REST', 'C5', 'B4', 'A4', 'G4', 'REST', 'E4', 'F4', 'G4', 'A4', 'REST', 'G4', 'F4', 'E4', 'D4'],
-  victory: ['C5', 'E5', 'G5', 'E5', 'C5', 'G4', 'C5', 'E5', 'G5', 'REST', 'G5', 'A5', 'G5', 'E5', 'C5', 'REST'],
-  defeat: ['A4', 'REST', 'E4', 'REST', 'A4', 'REST', 'E4', 'REST', 'D4', 'REST', 'A3', 'REST', 'E4', 'REST', 'A3', 'REST'],
+// Melodic patterns for each mood - MULTIPLE VARIATIONS
+const MELODIES: Record<TensionMood, string[][]> = {
+  peaceful: [
+    ['E4', 'G4', 'A4', 'G4', 'E4', 'D4', 'C4', 'D4', 'E4', 'REST', 'G4', 'E4', 'D4', 'C4', 'D4', 'E4'],
+    ['C4', 'D4', 'E4', 'G4', 'A4', 'G4', 'E4', 'REST', 'C4', 'E4', 'G4', 'A4', 'G4', 'E4', 'D4', 'C4'],
+    ['G4', 'A4', 'G4', 'E4', 'D4', 'E4', 'G4', 'REST', 'A4', 'G4', 'E4', 'D4', 'C4', 'D4', 'E4', 'REST'],
+  ],
+  tense: [
+    ['A4', 'REST', 'E4', 'REST', 'A4', 'G4', 'E4', 'REST', 'A4', 'REST', 'B4', 'A4', 'G4', 'E4', 'REST', 'REST'],
+    ['E4', 'A4', 'REST', 'E4', 'G4', 'REST', 'A4', 'G4', 'E4', 'REST', 'REST', 'A4', 'G4', 'E4', 'REST', 'D4'],
+    ['REST', 'A4', 'A4', 'REST', 'E4', 'E4', 'REST', 'G4', 'A4', 'REST', 'E4', 'REST', 'A4', 'G4', 'E4', 'REST'],
+  ],
+  crisis: [
+    ['E4', 'E4', 'E4', 'REST', 'E4', 'E4', 'F4', 'E4', 'D4', 'REST', 'E4', 'E4', 'E4', 'F4', 'G4', 'REST'],
+    ['E4', 'REST', 'E4', 'E4', 'F4', 'REST', 'E4', 'D4', 'E4', 'REST', 'E4', 'F4', 'E4', 'D4', 'REST', 'E4'],
+    ['F4', 'E4', 'D4', 'E4', 'F4', 'E4', 'D4', 'REST', 'E4', 'E4', 'F4', 'E4', 'G4', 'F4', 'E4', 'REST'],
+  ],
+  combat: [
+    ['E4', 'E4', 'E5', 'E4', 'E4', 'E5', 'D5', 'E5', 'E4', 'E4', 'E5', 'E4', 'G4', 'E5', 'D5', 'C5'],
+    ['E5', 'D5', 'E5', 'E4', 'G4', 'E5', 'D5', 'E5', 'C5', 'D5', 'E5', 'E4', 'E5', 'D5', 'C5', 'B4'],
+    ['G4', 'A4', 'E5', 'E4', 'G4', 'E5', 'D5', 'REST', 'E5', 'E5', 'D5', 'C5', 'B4', 'C5', 'D5', 'E5'],
+  ],
+  menu: [
+    ['G4', 'REST', 'C5', 'B4', 'A4', 'G4', 'REST', 'E4', 'F4', 'G4', 'A4', 'REST', 'G4', 'F4', 'E4', 'D4'],
+    ['C5', 'B4', 'A4', 'G4', 'F4', 'G4', 'A4', 'REST', 'G4', 'A4', 'B4', 'C5', 'REST', 'B4', 'A4', 'G4'],
+    ['E4', 'G4', 'A4', 'B4', 'C5', 'REST', 'B4', 'A4', 'G4', 'REST', 'A4', 'B4', 'C5', 'B4', 'A4', 'REST'],
+  ],
+  victory: [
+    ['C5', 'E5', 'G5', 'E5', 'C5', 'G4', 'C5', 'E5', 'G5', 'REST', 'G5', 'A5', 'G5', 'E5', 'C5', 'REST'],
+    ['G5', 'E5', 'C5', 'E5', 'G5', 'REST', 'A5', 'G5', 'E5', 'C5', 'E5', 'G5', 'A5', 'G5', 'E5', 'C5'],
+    ['C5', 'D5', 'E5', 'G5', 'E5', 'D5', 'C5', 'REST', 'E5', 'G5', 'A5', 'G5', 'E5', 'D5', 'C5', 'REST'],
+  ],
+  defeat: [
+    ['A4', 'REST', 'E4', 'REST', 'A4', 'REST', 'E4', 'REST', 'D4', 'REST', 'A3', 'REST', 'E4', 'REST', 'A3', 'REST'],
+    ['E4', 'REST', 'REST', 'A3', 'REST', 'E4', 'REST', 'REST', 'D4', 'REST', 'REST', 'A3', 'REST', 'REST', 'E4', 'REST'],
+    ['A3', 'REST', 'D4', 'REST', 'E4', 'REST', 'A4', 'REST', 'E4', 'REST', 'D4', 'REST', 'A3', 'REST', 'REST', 'REST'],
+  ],
 };
 
 // Bass patterns
@@ -95,6 +123,8 @@ export class ChiptuneEngine {
   private scheduledTime = 0;
   private lookahead = 0.1; // seconds
   private scheduleInterval: number | null = null;
+  private melodyVariation = 0;
+  private barsSinceChange = 0;
 
   constructor() {
     // Audio context will be created on first user interaction
@@ -223,12 +253,23 @@ export class ChiptuneEngine {
       const beatInBar = this.beatIndex % 16;
       const barIndex = Math.floor(this.beatIndex / 16) % 4;
 
-      // Get current patterns
-      const melody = MELODIES[this.currentMood];
+      // Change melody variation every 4-8 bars for more interest
+      if (beatInBar === 0 && barIndex === 0) {
+        this.barsSinceChange++;
+        if (this.barsSinceChange >= 4 + Math.floor(Math.random() * 4)) {
+          const variations = MELODIES[this.currentMood];
+          this.melodyVariation = Math.floor(Math.random() * variations.length);
+          this.barsSinceChange = 0;
+        }
+      }
+
+      // Get current patterns with variation
+      const melodyVariations = MELODIES[this.currentMood];
+      const melody = melodyVariations[this.melodyVariation % melodyVariations.length];
       const bass = BASS_PATTERNS[this.currentMood];
       const chord = PROGRESSIONS[this.currentMood][barIndex];
 
-      // Play melody
+      // Play melody (with slight random timing for humanization)
       const melodyNote = melody[beatInBar];
       if (melodyNote && melodyNote !== 'REST') {
         const freq = NOTES[melodyNote];

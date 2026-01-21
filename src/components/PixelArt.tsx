@@ -7,7 +7,8 @@ export type LeaderId =
   | 'trump' | 'putin' | 'xi' | 'kim'
   | 'starmer' | 'macron' | 'scholz' | 'trudeau'
   | 'nato_chief' | 'eu_president' | 'frederiksen' | 'store'
-  | 'stubb' | 'modi' | 'erdogan' | 'indigenous_elder';
+  | 'stubb' | 'modi' | 'erdogan' | 'indigenous_elder'
+  | 'lukashenko';
 
 interface PixelPortraitProps {
   leader: LeaderId;
@@ -357,6 +358,26 @@ const INDIGENOUS_ELDER: number[][] = [
   [0,0,0,4,4,4,4,4,4,4,4,0,0,0,0,0],
 ];
 
+// Lukashenko: Bald, mustache, military-style, stern
+const LUKASHENKO: number[][] = [
+  [0,0,0,0,6,6,6,6,6,6,6,0,0,0,0,0],
+  [0,0,0,6,6,6,6,6,6,6,6,6,0,0,0,0],
+  [0,0,6,6,6,6,6,6,6,6,6,6,6,0,0,0],
+  [0,0,6,6,6,6,6,6,6,6,6,6,6,0,0,0],
+  [0,0,6,6,6,6,6,6,6,6,6,6,6,0,0,0],
+  [0,0,6,2,1,6,6,6,1,2,6,6,0,0,0,0],
+  [0,0,6,6,6,6,6,6,6,6,6,6,0,0,0,0],
+  [0,0,6,6,4,4,4,4,4,4,6,6,0,0,0,0],
+  [0,0,0,6,6,6,6,6,6,6,6,0,0,0,0,0],
+  [0,0,0,6,6,1,1,1,1,6,6,0,0,0,0,0],
+  [0,0,0,15,15,15,15,15,15,15,15,0,0,0,0,0],
+  [0,0,15,15,15,15,15,15,15,15,15,15,0,0,0,0],
+  [0,0,15,15,3,3,15,15,3,3,15,15,0,0,0,0],
+  [0,0,15,15,15,15,15,15,15,15,15,15,0,0,0,0],
+  [0,0,15,15,15,15,15,15,15,15,15,15,0,0,0,0],
+  [0,0,0,15,15,15,15,15,15,15,15,0,0,0,0,0],
+];
+
 const PORTRAITS: Record<LeaderId, number[][]> = {
   trump: TRUMP,
   putin: PUTIN,
@@ -374,6 +395,7 @@ const PORTRAITS: Record<LeaderId, number[][]> = {
   modi: MODI,
   erdogan: ERDOGAN,
   indigenous_elder: INDIGENOUS_ELDER,
+  lukashenko: LUKASHENKO,
 };
 
 export const LEADER_NAMES: Record<LeaderId, string> = {
@@ -393,6 +415,7 @@ export const LEADER_NAMES: Record<LeaderId, string> = {
   modi: 'Narendra Modi',
   erdogan: 'Recep Erdogan',
   indigenous_elder: 'Arctic Council Elder',
+  lukashenko: 'Alexander Lukashenko',
 };
 
 export const LEADER_FACTIONS: Record<LeaderId, string> = {
@@ -412,6 +435,7 @@ export const LEADER_FACTIONS: Record<LeaderId, string> = {
   modi: 'india',
   erdogan: 'turkey',
   indigenous_elder: 'indigenous',
+  lukashenko: 'belarus',
 };
 
 export const PixelPortrait: React.FC<PixelPortraitProps> = ({

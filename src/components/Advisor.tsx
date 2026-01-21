@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { GameState, FactionId } from '../types/game';
-import { PixelPortrait, LeaderId } from './PixelArt';
+import { PixelPortrait, LeaderId, LEADER_NAMES } from './PixelArt';
 import './Advisor.css';
 
 interface AdvisorProps {
@@ -14,158 +14,309 @@ interface AdvisorTip {
   priority: number;
   message: string;
   action?: string;
-  category: 'urgent' | 'suggestion' | 'info' | 'warning';
+  category: 'urgent' | 'suggestion' | 'info' | 'warning' | 'strategic';
 }
 
-// Get contextual tips based on game state
-const getAdvisorTips = (gameState: GameState, selectedZone: string | null): AdvisorTip[] => {
+// Faction-specific advisors
+const FACTION_ADVISORS: Record<FactionId, { leader: LeaderId; title: string; style: string }> = {
+  usa: { leader: 'starmer', title: 'UK Special Advisor', style: 'diplomatic' },
+  russia: { leader: 'lukashenko', title: 'Belarus Strategic Counsel', style: 'aggressive' },
+  china: { leader: 'kim', title: 'DPRK Military Liaison', style: 'militant' },
+  eu: { leader: 'macron', title: 'French Strategic Advisor', style: 'diplomatic' },
+  canada: { leader: 'trudeau', title: 'Arctic Council Rep', style: 'cooperative' },
+  norway: { leader: 'store', title: 'Nordic Coordinator', style: 'balanced' },
+  denmark: { leader: 'frederiksen', title: 'Greenland Specialist', style: 'territorial' },
+  nato: { leader: 'nato_chief', title: 'Alliance Commander', style: 'defensive' },
+  indigenous: { leader: 'indigenous_elder', title: 'Elder Council', style: 'wise' },
+};
+
+/* Advisor personality phrases - referenced in advisor style selection
+ * diplomatic: cooperative, measured responses
+ * aggressive: forceful, confrontational style
+ * militant: warlike, nuclear-ready messaging
+ * cooperative: friendly, partnership-focused
+ * balanced: neutral, analytical approach
+ * territorial: sovereignty-focused
+ * defensive: alliance-oriented, NATO-style
+ * wise: traditional, spiritual perspective
+ */
+
+// Get strategic tips based on game state and opponent actions
+const getAdvisorTips = (gameState: GameState, selectedZone: string | null, advisorStyle: string): AdvisorTip[] => {
   const tips: AdvisorTip[] = [];
   const player = gameState.factions[gameState.playerFaction];
   const playerRelations = gameState.relations.filter(r => r.factions.includes(gameState.playerFaction));
 
-  // Turn-based tips
-  if (gameState.turn === 1) {
+  // Analyze opponent actions and positions
+  const opponents = Object.entries(gameState.factions)
+    .filter(([factionId]) => factionId !== gameState.playerFaction)
+    .map(([factionId, faction]) => ({ factionId: factionId as FactionId, ...faction }));
+
+  const leadingOpponent = opponents.sort((a, b) => b.victoryPoints - a.victoryPoints)[0];
+  const playerRank = opponents.filter(o => o.victoryPoints > player.victoryPoints).length + 1;
+
+  // Opponent military buildup detection
+  const opponentUnits = gameState.militaryUnits.filter(u => u.owner !== gameState.playerFaction);
+  const playerUnits = gameState.militaryUnits.filter(u => u.owner === gameState.playerFaction && u.status !== 'destroyed');
+
+  // Calculate zone control
+  const playerZones = Object.values(gameState.zones).filter(z => z.controller === gameState.playerFaction).length;
+  const totalZones = Object.values(gameState.zones).length;
+  const controlPercent = Math.round((playerZones / totalZones) * 100);
+
+  // TURN-SPECIFIC STRATEGIC ADVICE
+
+  // Turn 1-3: Early game expansion
+  if (gameState.turn <= 3) {
     tips.push({
-      id: 'first_turn',
-      priority: 100,
-      message: "Welcome, Commander! Start by claiming unclaimed Arctic zones to establish your presence.",
-      action: "Select a gray zone on the map",
+      id: 'early_expansion',
+      priority: 95,
+      message: `Early game is critical for expansion. You control ${controlPercent}% of zones. Claim unclaimed territories before rivals do!`,
+      action: "Select gray zones and use Sovereignty Claim",
+      category: 'strategic',
+    });
+  }
+
+  // Who's winning analysis
+  if (leadingOpponent && leadingOpponent.victoryPoints > player.victoryPoints + 30) {
+    const style = advisorStyle === 'aggressive' || advisorStyle === 'militant'
+      ? `${leadingOpponent.factionId.toUpperCase()} is dominating! We must strike at their weak points!`
+      : `${leadingOpponent.factionId.toUpperCase()} is pulling ahead with ${leadingOpponent.victoryPoints} VP. Consider targeting their interests.`;
+    tips.push({
+      id: 'opponent_leading',
+      priority: 88,
+      message: style,
+      action: advisorStyle === 'militant' ? "Military action against leader" : "Economic or diplomatic pressure",
+      category: 'warning',
+    });
+  }
+
+  // Player is leading
+  if (playerRank === 1 && player.victoryPoints > 50) {
+    tips.push({
+      id: 'player_leading',
+      priority: 75,
+      message: `Excellent! You're in the lead with ${player.victoryPoints} VP. Defend your position and maintain momentum.`,
+      action: "Consolidate gains, build defenses",
       category: 'info',
+    });
+  }
+
+  // Military balance advice
+  if (opponentUnits.length > playerUnits.length * 1.5) {
+    const style = advisorStyle === 'militant'
+      ? "Our enemies amass forces! We must build more weapons immediately!"
+      : "Opponent military buildup detected. Consider increasing defense spending.";
+    tips.push({
+      id: 'military_imbalance',
+      priority: 85,
+      message: style,
+      action: "Build military units in Military tab",
+      category: 'warning',
+    });
+  }
+
+  // Tension-based advice
+  const crisisFactions = playerRelations.filter(r => r.tensionLevel === 'crisis' || r.tensionLevel === 'conflict');
+  const confrontationFactions = playerRelations.filter(r => r.tensionLevel === 'confrontation');
+
+  if (crisisFactions.length > 0) {
+    const factionName = crisisFactions[0].factions.find(f => f !== gameState.playerFaction)?.toUpperCase();
+    const style = advisorStyle === 'aggressive'
+      ? `${factionName} has pushed us to the brink! Prepare for war or force them to back down!`
+      : `Crisis with ${factionName}! One wrong move could trigger conflict. Consider de-escalation... or prepare defenses.`;
+    tips.push({
+      id: 'crisis_faction',
+      priority: 92,
+      message: style,
+      action: advisorStyle === 'cooperative' ? "Try diplomatic resolution" : "Prepare military, but leave door open",
+      category: 'urgent',
+    });
+  }
+
+  if (confrontationFactions.length >= 2) {
+    tips.push({
+      id: 'multiple_tensions',
+      priority: 87,
+      message: `You face confrontation with ${confrontationFactions.length} factions. Avoid opening multiple fronts - focus on one rival.`,
+      action: "Improve relations with weaker opponents",
+      category: 'warning',
     });
   }
 
   // Resource warnings
-  if (player.resources.economicOutput < 20) {
+  if (player.resources.economicOutput < 25) {
     tips.push({
       id: 'low_economy',
       priority: 90,
-      message: "Economic output is critically low! Focus on resource extraction or trade deals.",
-      action: "Use 'Economic Investment' action",
+      message: "Economic output is critically low! Without funds, you cannot build or project power.",
+      action: "Use Economic Investment or Resource Extraction",
       category: 'urgent',
     });
   }
 
-  if (player.resources.influencePoints < 10) {
-    tips.push({
-      id: 'low_influence',
-      priority: 85,
-      message: "Influence is running low. Consider diplomatic actions to rebuild soft power.",
-      action: "Try 'Diplomatic Outreach'",
-      category: 'warning',
-    });
-  }
-
-  if (player.resources.legitimacy < 30) {
+  if (player.resources.legitimacy < 40) {
+    const style = advisorStyle === 'militant'
+      ? "The world condemns us, but who cares? Power matters more than reputation."
+      : "International legitimacy is low. This limits our diplomatic options.";
     tips.push({
       id: 'low_legitimacy',
-      priority: 95,
-      message: "International legitimacy is dangerously low! The world views you as a rogue state.",
-      action: "Avoid aggressive actions",
-      category: 'urgent',
+      priority: 82,
+      message: style,
+      action: advisorStyle === 'militant' ? "Ignore it, build strength" : "Reduce aggressive actions",
+      category: advisorStyle === 'militant' ? 'info' : 'warning',
     });
   }
 
-  // Tension warnings
-  const crisisFactions = playerRelations.filter(r => r.tensionLevel === 'crisis' || r.tensionLevel === 'conflict');
-  if (crisisFactions.length > 0) {
-    const factionNames = crisisFactions.map(r =>
-      r.factions.find(f => f !== gameState.playerFaction)?.toUpperCase()
-    ).join(', ');
-    tips.push({
-      id: 'high_tension',
-      priority: 92,
-      message: `Crisis level tensions with ${factionNames}! War could break out any moment.`,
-      action: "Consider de-escalation or prepare military",
-      category: 'urgent',
-    });
-  }
-
-  // Military tips
-  const playerUnits = gameState.militaryUnits.filter(u => u.owner === gameState.playerFaction && u.status !== 'destroyed');
+  // No military units
   if (playerUnits.length === 0 && gameState.turn > 2) {
     tips.push({
       id: 'no_military',
-      priority: 80,
-      message: "You have no military units! You're vulnerable to aggression.",
-      action: "Build units in the Military tab",
-      category: 'warning',
+      priority: 89,
+      message: "You have no military forces! You're completely vulnerable to aggression.",
+      action: "Build units immediately in Military tab",
+      category: 'urgent',
     });
   }
 
-  const damagedUnits = playerUnits.filter(u => u.status === 'damaged');
-  if (damagedUnits.length > 0) {
-    tips.push({
-      id: 'damaged_units',
-      priority: 70,
-      message: `${damagedUnits.length} unit(s) are damaged and need repairs.`,
-      category: 'info',
-    });
-  }
-
-  // Zone-specific tips
+  // Selected zone advice
   if (selectedZone) {
     const zone = gameState.zones[selectedZone];
     if (zone) {
       if (!zone.controller) {
         tips.push({
-          id: 'unclaimed_zone',
-          priority: 75,
-          message: `${zone.name} is unclaimed! You could assert sovereignty here.`,
-          action: "Use 'Sovereignty Claim' action",
+          id: 'unclaimed_selected',
+          priority: 78,
+          message: `${zone.name} is unclaimed! This is an opportunity to expand our influence.`,
+          action: "Use Sovereignty Claim action",
           category: 'suggestion',
         });
       } else if (zone.controller !== gameState.playerFaction) {
-        const controllerName = zone.controller.toUpperCase();
-        tips.push({
-          id: 'enemy_zone',
-          priority: 65,
-          message: `${zone.name} is controlled by ${controllerName}. Diplomatic or military options available.`,
-          category: 'info',
-        });
-      }
-
-      // Resource opportunities
-      if (zone.resources.oil > 70 || zone.resources.gas > 70) {
-        tips.push({
-          id: 'rich_resources',
-          priority: 60,
-          message: `${zone.name} has abundant energy resources worth exploiting.`,
-          category: 'suggestion',
-        });
+        const rel = playerRelations.find(r => r.factions.includes(zone.controller!));
+        const tension = rel?.tensionLevel || 'competition';
+        if (tension === 'cooperation' || tension === 'competition') {
+          tips.push({
+            id: 'enemy_zone_low_tension',
+            priority: 65,
+            message: `${zone.name} belongs to ${zone.controller.toUpperCase()}. Relations are stable - consider economic cooperation.`,
+            action: "Negotiate or propose joint venture",
+            category: 'info',
+          });
+        } else {
+          tips.push({
+            id: 'enemy_zone_high_tension',
+            priority: 76,
+            message: `${zone.name} is held by ${zone.controller.toUpperCase()} during high tensions. Vulnerable to pressure.`,
+            action: advisorStyle === 'aggressive' ? "Consider military options" : "Apply diplomatic pressure",
+            category: 'suggestion',
+          });
+        }
       }
     }
   }
 
-  // Victory point tips
-  const vpLeader = Object.entries(gameState.factions)
-    .sort(([, a], [, b]) => b.victoryPoints - a.victoryPoints)[0];
+  // VICTORY-FOCUSED ADVICE
+  const cooperativeRelations = playerRelations.filter(r => r.tensionLevel === 'cooperation').length;
+  const allCooperative = cooperativeRelations === playerRelations.length;
+  const allianceCount = playerRelations.filter(r => r.tensionLevel === 'cooperation' && r.treaties.length > 0).length;
 
-  if (vpLeader[0] !== gameState.playerFaction && vpLeader[1].victoryPoints > player.victoryPoints + 20) {
+  // Nobel Peace Prize path
+  if (allCooperative && gameState.turn >= 3) {
     tips.push({
-      id: 'falling_behind',
-      priority: 88,
-      message: `${vpLeader[0].toUpperCase()} is pulling ahead! You need to act decisively.`,
-      category: 'warning',
+      id: 'nobel_path',
+      priority: 80,
+      message: `You're on the path to the Nobel Peace Prize! Maintain peace with all factions for 5 turns.`,
+      action: "Continue diplomatic engagement, avoid military action",
+      category: 'strategic',
+    });
+  } else if (cooperativeRelations >= playerRelations.length - 1 && advisorStyle === 'diplomatic') {
+    tips.push({
+      id: 'near_peace',
+      priority: 72,
+      message: `Close to universal peace! Improve relations with one more faction for Nobel Prize path.`,
+      action: "Focus diplomacy on remaining hostile factions",
+      category: 'suggestion',
     });
   }
 
-  // Late game tips
-  if (gameState.turn >= 15) {
+  // Hegemonic victory path
+  if (controlPercent >= 45) {
+    tips.push({
+      id: 'hegemonic_path',
+      priority: 83,
+      message: `You control ${controlPercent}% of the Arctic! 60% needed for Hegemonic Victory.`,
+      action: "Expand into remaining unclaimed or contested zones",
+      category: 'strategic',
+    });
+  }
+
+  // Economic victory path
+  if (player.resources.economicOutput >= 350) {
+    tips.push({
+      id: 'economic_path',
+      priority: 81,
+      message: `Economy at ${player.resources.economicOutput}/500! Economic Victory within reach.`,
+      action: "Invest in resource-rich zones, avoid costly conflicts",
+      category: 'strategic',
+    });
+  }
+
+  // Diplomatic victory path
+  if (allianceCount >= 2) {
+    tips.push({
+      id: 'diplomatic_path',
+      priority: 77,
+      message: `${allianceCount}/4 alliances formed! Grand Alliance Victory possible.`,
+      action: "Negotiate treaties with remaining factions",
+      category: 'suggestion',
+    });
+  }
+
+  // Military supremacy path
+  const playerStrength = playerUnits.reduce((sum, u) => sum + u.strength, 0);
+  const enemyStrength = opponentUnits.reduce((sum, u) => sum + u.strength, 0);
+  if (playerStrength > enemyStrength * 2 && advisorStyle === 'aggressive' || advisorStyle === 'militant') {
+    tips.push({
+      id: 'military_path',
+      priority: 79,
+      message: `Military supremacy achieved! Consider pressing your advantage.`,
+      action: "Expand territory through force projection",
+      category: 'strategic',
+    });
+  }
+
+  // Scientific victory hint
+  if (player.resources.legitimacy >= 80 && gameState.globalIceExtent >= 60) {
+    tips.push({
+      id: 'scientific_path',
+      priority: 74,
+      message: `High legitimacy (${player.resources.legitimacy}%) and stable ice (${gameState.globalIceExtent}%). Climate Savior path viable!`,
+      action: "Maintain legitimacy, avoid actions that harm the environment",
+      category: 'suggestion',
+    });
+  }
+
+  // Late game
+  if (gameState.turn >= 16) {
     tips.push({
       id: 'late_game',
-      priority: 50,
-      message: "Final turns approaching. Focus on maximizing victory points!",
-      category: 'info',
+      priority: 70,
+      message: `Only ${20 - gameState.turn} turns remain! Focus everything on victory points.`,
+      action: "Maximize VP through zone control and economy",
+      category: 'strategic',
     });
   }
 
-  // Nuclear readiness
-  if (gameState.nuclearReadiness === 'elevated' || gameState.nuclearReadiness === 'defcon2') {
+  // Nuclear warning
+  if (gameState.nuclearReadiness === 'defcon2' || gameState.nuclearReadiness === 'defcon1') {
+    const style = advisorStyle === 'militant'
+      ? "Nuclear forces ready! The ultimate deterrent is in our hands!"
+      : "DEFCON elevated. One miscalculation could end everything. Exercise extreme caution.";
     tips.push({
-      id: 'nuclear_tension',
-      priority: 98,
-      message: "Nuclear tensions are elevated. One wrong move could end everything.",
-      action: "Avoid provocative actions",
+      id: 'nuclear_danger',
+      priority: 99,
+      message: style,
+      action: advisorStyle === 'militant' ? "Maintain readiness" : "Seek immediate de-escalation",
       category: 'urgent',
     });
   }
@@ -180,7 +331,7 @@ const ADVISOR_MOODS = {
   concerned: { emoji: '😟', color: '#ff9800' },
   alarmed: { emoji: '😰', color: '#f44336' },
   pleased: { emoji: '😊', color: '#2196f3' },
-  strategic: { emoji: '🤔', color: '#9c27b0' },
+  strategic: { emoji: '🎯', color: '#9c27b0' },
 };
 
 export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => {
@@ -189,7 +340,11 @@ export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => 
   const [isTyping, setIsTyping] = useState(true);
   const [displayedText, setDisplayedText] = useState('');
 
-  const tips = useMemo(() => getAdvisorTips(gameState, selectedZone), [gameState, selectedZone]);
+  // Get faction-specific advisor
+  const advisorInfo = FACTION_ADVISORS[gameState.playerFaction] || FACTION_ADVISORS.usa;
+  const advisorStyle = advisorInfo.style;
+
+  const tips = useMemo(() => getAdvisorTips(gameState, selectedZone, advisorStyle), [gameState, selectedZone, advisorStyle]);
   const currentTip = tips[currentTipIndex] || null;
 
   // Determine advisor mood
@@ -198,7 +353,8 @@ export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => 
     switch (currentTip.category) {
       case 'urgent': return ADVISOR_MOODS.alarmed;
       case 'warning': return ADVISOR_MOODS.concerned;
-      case 'suggestion': return ADVISOR_MOODS.strategic;
+      case 'suggestion': return ADVISOR_MOODS.pleased;
+      case 'strategic': return ADVISOR_MOODS.strategic;
       default: return ADVISOR_MOODS.calm;
     }
   }, [currentTip]);
@@ -226,6 +382,11 @@ export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => 
     return () => clearInterval(timer);
   }, [currentTip]);
 
+  // Reset tip index when tips change
+  useEffect(() => {
+    setCurrentTipIndex(0);
+  }, [gameState.turn]);
+
   // Cycle through tips
   const nextTip = () => {
     if (tips.length > 1) {
@@ -243,9 +404,9 @@ export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => 
     return (
       <div className="advisor-container minimized">
         <div className="advisor-portrait">
-          <PixelPortrait leader="indigenous_elder" size={48} />
+          <PixelPortrait leader={advisorInfo.leader} size={48} />
         </div>
-        <span className="advisor-idle">All quiet on the Arctic front...</span>
+        <span className="advisor-idle">Situation nominal. Awaiting orders...</span>
       </div>
     );
   }
@@ -254,14 +415,14 @@ export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => 
     <div className={`advisor-container ${isExpanded ? 'expanded' : 'minimized'}`}>
       <div className="advisor-header" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="advisor-portrait">
-          <PixelPortrait leader="indigenous_elder" size={48} />
+          <PixelPortrait leader={advisorInfo.leader} size={48} />
           <span className="advisor-mood" style={{ background: mood.color }}>
             {mood.emoji}
           </span>
         </div>
         <div className="advisor-title">
-          <span className="advisor-name">Strategic Advisor</span>
-          <span className="advisor-role">Arctic Intelligence</span>
+          <span className="advisor-name">{LEADER_NAMES[advisorInfo.leader]}</span>
+          <span className="advisor-role">{advisorInfo.title}</span>
         </div>
         <button className="advisor-toggle">
           {isExpanded ? '▼' : '▲'}
@@ -278,7 +439,7 @@ export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => 
             </p>
             {currentTip.action && !isTyping && (
               <div className="tip-action">
-                <span className="action-label">Suggested:</span>
+                <span className="action-label">Recommended:</span>
                 <span className="action-text">{currentTip.action}</span>
               </div>
             )}
@@ -322,6 +483,7 @@ const generateDiplomaticMessages = (gameState: GameState): DiplomacyMessage[] =>
     usa: 'trump',
     russia: 'putin',
     china: 'xi',
+    eu: 'eu_president',
     nato: 'nato_chief',
     canada: 'trudeau',
     norway: 'store',
@@ -345,24 +507,24 @@ const generateDiplomaticMessages = (gameState: GameState): DiplomacyMessage[] =>
       conflict: ["You have chosen war. Russia never loses.", "The consequences will be severe and permanent."],
     },
     xi: {
-      cooperation: ["China-[player] relations benefit global stability.", "Mutual respect leads to mutual prosperity."],
+      cooperation: ["China-friendship relations benefit global stability.", "Mutual respect leads to mutual prosperity."],
       competition: ["China's interests in the Arctic are legitimate.", "Consider the long-term implications of your actions."],
       confrontation: ["Beijing is concerned by recent provocations.", "The dragon's patience is not infinite."],
       crisis: ["This path leads only to mutual destruction.", "China will defend its core interests. Final warning."],
       conflict: ["You have forced China's hand. History will judge.", "The Middle Kingdom will prevail as always."],
     },
     eu_president: {
-      cooperation: ["European Union welcomes your cooperative approach.", "Together we can address Arctic challenges."],
-      competition: ["Brussels urges restraint and dialogue.", "Unilateral actions undermine international order."],
-      confrontation: ["The EU condemns these provocative actions.", "We call for immediate de-escalation."],
-      crisis: ["Europe stands united against aggression.", "Sanctions are being prepared."],
-      conflict: ["This war will have consequences for generations.", "Europe will not forget."],
+      cooperation: ["European-relations are strengthened through cooperation.", "The Union values this partnership."],
+      competition: ["Europe has legitimate Arctic interests too.", "We seek multilateral solutions."],
+      confrontation: ["Brussels is concerned by these developments.", "European unity will prevail."],
+      crisis: ["The EU will not be intimidated.", "We demand immediate de-escalation."],
+      conflict: ["Europe stands united against aggression.", "You face the combined will of 27 nations."],
     },
     trudeau: {
       cooperation: ["Canada appreciates the peaceful approach, eh.", "Good neighbors make good partners."],
       competition: ["The Northwest Passage is Canadian. Period.", "Let's talk before this gets out of hand."],
-      confrontation: ["This is not the Canada-[player] relationship we want.", "Please reconsider your aggressive posture."],
-      crisis: ["Canada will defend its Arctic sovereignty!", "You're forcing us into NATO's arms."],
+      confrontation: ["This is not the relationship we want.", "Please reconsider your aggressive posture."],
+      crisis: ["Canada will defend its Arctic sovereignty!", "You're forcing us to respond."],
       conflict: ["We didn't want this, but we'll fight for our land.", "Canadian Rangers know this terrain. You don't."],
     },
   };
@@ -373,6 +535,7 @@ const generateDiplomaticMessages = (gameState: GameState): DiplomacyMessage[] =>
     if (!otherFaction || !leaderMap[otherFaction]) continue;
 
     const leader = leaderMap[otherFaction];
+    if (!leader) continue;
     const templates = messageTemplates[leader];
     if (!templates) continue;
 
@@ -418,6 +581,7 @@ export const DiplomacyPanel: React.FC<DiplomacyPanelProps> = ({ gameState, onSel
     usa: '🇺🇸',
     russia: '🇷🇺',
     china: '🇨🇳',
+    eu: '🇪🇺',
     nato: '🏛️',
     canada: '🇨🇦',
     norway: '🇳🇴',
@@ -429,6 +593,7 @@ export const DiplomacyPanel: React.FC<DiplomacyPanelProps> = ({ gameState, onSel
     usa: 'trump',
     russia: 'putin',
     china: 'xi',
+    eu: 'eu_president',
     nato: 'nato_chief',
     canada: 'trudeau',
     norway: 'store',

@@ -413,6 +413,13 @@ export const generateStartingUnits = (faction: FactionId): MilitaryUnit[] => {
       units.push(createUnit('surface_fleet', 'greenland_south'));
       units.push(createUnit('aircraft', 'greenland_north'));
       break;
+
+    case 'eu':
+      units.push(createUnit('surface_fleet', 'barents_no')); // EU naval presence
+      units.push(createUnit('submarine', 'norwegian_sea'));
+      units.push(createUnit('aircraft', 'svalbard'));
+      units.push(createUnit('icebreaker_combat', 'high_arctic_west'));
+      break;
   }
 
   return units;
