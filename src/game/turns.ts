@@ -8,6 +8,7 @@ import {
   checkNuclearEscalation,
   ACHIEVEMENTS,
 } from './drama';
+import { runAITurn, executeAIActions, AI_PROFILES } from './ai';
 
 // Random events that can occur
 const RANDOM_EVENTS: GameEvent[] = [
@@ -478,65 +479,100 @@ export const applyCrisisChoice = (
 };
 
 const runAITurns = (state: GameState): void => {
-  const aiFactions: FactionId[] = ['usa', 'russia', 'china'].filter(
+  // Get all AI factions (major powers that aren't the player)
+  const aiFactions: FactionId[] = ['usa', 'russia', 'china', 'eu'].filter(
     f => f !== state.playerFaction
   ) as FactionId[];
 
   aiFactions.forEach(factionId => {
-    const faction = state.factions[factionId];
+    // Use the new AI engine for decision making
+    const aiActions = runAITurn(state, factionId);
 
-    // Simple AI: take random affordable action
-    const affordableActions = GAME_ACTIONS.filter(action => {
-      if (action.cost.influencePoints && faction.resources.influencePoints < action.cost.influencePoints) {
-        return false;
-      }
-      if (action.cost.economicOutput && faction.resources.economicOutput < action.cost.economicOutput) {
-        return false;
-      }
-      return true;
-    });
-
-    if (affordableActions.length > 0) {
-      // Weighted selection based on faction personality
-      let selectedAction = affordableActions[Math.floor(Math.random() * affordableActions.length)];
-
-      // Russia prefers military actions
-      if (factionId === 'russia' && Math.random() > 0.5) {
-        const militaryActions = affordableActions.filter(a => a.category === 'military');
-        if (militaryActions.length > 0) {
-          selectedAction = militaryActions[Math.floor(Math.random() * militaryActions.length)];
-        }
-      }
-
-      // China prefers economic actions
-      if (factionId === 'china' && Math.random() > 0.5) {
-        const economicActions = affordableActions.filter(a => a.category === 'economic');
-        if (economicActions.length > 0) {
-          selectedAction = economicActions[Math.floor(Math.random() * economicActions.length)];
-        }
-      }
-
-      // USA prefers diplomatic actions
-      if (factionId === 'usa' && Math.random() > 0.5) {
-        const diplomaticActions = affordableActions.filter(a => a.category === 'diplomatic');
-        if (diplomaticActions.length > 0) {
-          selectedAction = diplomaticActions[Math.floor(Math.random() * diplomaticActions.length)];
-        }
-      }
-
-      // Execute AI action (simplified - target player if applicable)
-      const originalPlayer = state.playerFaction;
-      state.playerFaction = factionId;
-
-      if (selectedAction.effects.tensionChange) {
-        executeAction(state, selectedAction, originalPlayer);
-      } else {
-        executeAction(state, selectedAction);
-      }
-
-      state.playerFaction = originalPlayer;
+    if (aiActions.length > 0) {
+      // Execute AI decisions
+      executeAIActions(state, factionId, aiActions);
+    } else {
+      // Fallback to simple action if AI engine returns nothing
+      fallbackAIAction(state, factionId);
     }
   });
+
+  // Minor factions (Canada, Norway, Denmark) - less aggressive AI
+  const minorFactions: FactionId[] = ['canada', 'norway', 'denmark'].filter(
+    f => f !== state.playerFaction
+  ) as FactionId[];
+
+  minorFactions.forEach(factionId => {
+    // Minor factions only act every other turn
+    if (state.turn % 2 === 0) {
+      const aiActions = runAITurn(state, factionId);
+      if (aiActions.length > 0) {
+        // Minor factions only take 1 action per turn
+        executeAIActions(state, factionId, aiActions.slice(0, 1));
+      }
+    }
+  });
+};
+
+// Fallback simple AI for when the advanced AI returns no actions
+const fallbackAIAction = (state: GameState, factionId: FactionId): void => {
+  const faction = state.factions[factionId];
+  const profile = AI_PROFILES[factionId];
+
+  // Simple AI: take random affordable action based on personality
+  const affordableActions = GAME_ACTIONS.filter(action => {
+    if (action.cost.influencePoints && faction.resources.influencePoints < action.cost.influencePoints) {
+      return false;
+    }
+    if (action.cost.economicOutput && faction.resources.economicOutput < action.cost.economicOutput) {
+      return false;
+    }
+    return true;
+  });
+
+  if (affordableActions.length === 0) return;
+
+  // Filter by personality preference
+  let preferredActions = affordableActions;
+
+  if (profile) {
+    switch (profile.personality) {
+      case 'aggressive':
+        const militaryActions = affordableActions.filter(a => a.category === 'military');
+        if (militaryActions.length > 0) preferredActions = militaryActions;
+        break;
+      case 'economic':
+        const economicActions = affordableActions.filter(a => a.category === 'economic');
+        if (economicActions.length > 0) preferredActions = economicActions;
+        break;
+      case 'diplomatic':
+        const diplomaticActions = affordableActions.filter(a => a.category === 'diplomatic');
+        if (diplomaticActions.length > 0) preferredActions = diplomaticActions;
+        break;
+      case 'defensive':
+        const defensiveActions = affordableActions.filter(a =>
+          a.category === 'military' && (a.id.includes('defense') || a.id.includes('base'))
+        );
+        if (defensiveActions.length > 0) preferredActions = defensiveActions;
+        break;
+    }
+  }
+
+  const selectedAction = preferredActions[Math.floor(Math.random() * preferredActions.length)];
+
+  // Execute action
+  const originalPlayer = state.playerFaction;
+  state.playerFaction = factionId;
+
+  if (selectedAction.effects.tensionChange && profile?.rivals.length > 0) {
+    // Target a rival if this affects tension
+    const targetRival = profile.rivals[Math.floor(Math.random() * profile.rivals.length)];
+    executeAction(state, selectedAction, targetRival);
+  } else {
+    executeAction(state, selectedAction);
+  }
+
+  state.playerFaction = originalPlayer;
 };
 
 const checkVictoryConditions = (state: GameState): void => {

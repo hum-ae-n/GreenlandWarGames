@@ -70,6 +70,9 @@ export const generateCrisis = (state: GameState): CrisisEvent | null => {
     () => createGreenlandUnrestCrisis(state),
     () => createIndigenousBlockadeCrisis(state),
     () => createCyberAttackCrisis(state),
+    () => createResourceSabotageCrisis(state),
+    () => createClimateEmergencyCrisis(state),
+    () => createAlliedRequestCrisis(state),
   ];
 
   const crisis = crisisPool[Math.floor(Math.random() * crisisPool.length)]();
@@ -131,10 +134,12 @@ const createSubmarineDetectedCrisis = (state: GameState): CrisisEvent => {
       {
         id: 'ignore',
         label: 'Do Nothing',
-        description: 'Pretend you didn\'t detect it. Avoid escalation.',
+        description: 'Pretend you didn\'t detect it. Avoid escalation at the cost of credibility.',
         consequences: {
           legitimacyChange: -10,
           militaryReadinessChange: -5,
+          tensionChange: [{ faction: enemyFaction, amount: -5 }], // They appreciate non-escalation
+          influenceChange: -15, // Allies question your resolve
         },
       },
     ],
@@ -182,6 +187,8 @@ const createAircraftInterceptCrisis = (state: GameState): CrisisEvent => {
         description: 'Track their flight path and report through channels.',
         consequences: {
           tensionChange: [{ faction: enemyFaction, amount: 5 }],
+          militaryReadinessChange: -5, // Seen as passive
+          influenceChange: 10, // Gathering intel
         },
       },
     ],
@@ -328,9 +335,11 @@ const createDefectorIntelCrisis = (state: GameState): CrisisEvent => {
       {
         id: 'reject_trap',
         label: 'Assume It\'s a Trap',
-        description: 'Too risky. Decline the offer.',
+        description: 'Too risky. Decline the offer but maintain vigilance.',
         consequences: {
           legitimacyChange: 5,
+          influenceChange: -5,  // Missed potential intel
+          militaryReadinessChange: 5, // Increased caution
         },
       },
     ],
@@ -379,8 +388,11 @@ const createGreenlandUnrestCrisis = (_state: GameState): CrisisEvent => {
       {
         id: 'stay_neutral',
         label: 'Stay Neutral',
-        description: 'This is an internal matter.',
-        consequences: {},
+        description: 'This is an internal matter. Focus on your own interests.',
+        consequences: {
+          influenceChange: -10,  // Missing an opportunity
+          legitimacyChange: -5,  // Seen as disengaged
+        },
       },
     ],
   };
@@ -481,6 +493,220 @@ const createCyberAttackCrisis = (state: GameState): CrisisEvent => {
           tensionChange: [{ faction: enemyFaction, amount: 15 }],
           legitimacyChange: 10,
           leaderReaction: { leader: enemyFaction === 'china' ? 'xi' : 'putin', context: 'negotiation' },
+        },
+      },
+    ],
+  };
+};
+
+const createResourceSabotageCrisis = (state: GameState): CrisisEvent => {
+  const enemyFaction: FactionId = state.playerFaction === 'russia' ? 'usa' : 'russia';
+  const playerZones = Object.values(state.zones).filter(z => z.controller === state.playerFaction && z.resources.oil > 3);
+  const targetZone = playerZones[Math.floor(Math.random() * playerZones.length)]?.id || 'beaufort_us';
+
+  return {
+    id: `crisis_sabotage_${Date.now()}`,
+    type: 'resource_sabotage',
+    title: '💥 PIPELINE EXPLOSION',
+    description: `A major explosion has crippled your oil pipeline infrastructure in ${state.zones[targetZone]?.name || 'the Arctic'}. Intelligence suggests sabotage, possibly by ${enemyFaction.toUpperCase()} operatives. The damage will take months to repair.`,
+    instigator: enemyFaction,
+    targetZone,
+    urgency: 'urgent',
+    turnsToRespond: 1,
+    choices: [
+      {
+        id: 'military_response',
+        label: 'Military Retaliation',
+        description: 'Strike their infrastructure in kind. An eye for an eye.',
+        consequences: {
+          tensionChange: [{ faction: enemyFaction, amount: 50 }],
+          economicChange: -20,
+          legitimacyChange: -15,
+          leaderReaction: { leader: enemyFaction === 'russia' ? 'putin' : 'trump', context: 'threat' },
+        },
+        successChance: 70,
+        failureConsequences: {
+          tensionChange: [{ faction: enemyFaction, amount: 70 }],
+          economicChange: -40,
+          legitimacyChange: -30,
+        },
+      },
+      {
+        id: 'economic_sanctions',
+        label: 'Impose Sanctions',
+        description: 'Hit them where it hurts - their economy. Rally international support.',
+        consequences: {
+          tensionChange: [{ faction: enemyFaction, amount: 20 }],
+          economicChange: -30, // Sanctions hurt both sides
+          legitimacyChange: 15,
+          influenceChange: 20,
+        },
+      },
+      {
+        id: 'covert_response',
+        label: 'Covert Operations',
+        description: 'Respond in kind, secretly. Deniable but effective.',
+        consequences: {
+          influenceChange: 25,
+          economicChange: -15,
+        },
+        successChance: 55,
+        failureConsequences: {
+          tensionChange: [{ faction: enemyFaction, amount: 40 }],
+          legitimacyChange: -25,
+          leaderReaction: { leader: enemyFaction === 'russia' ? 'putin' : 'trump', context: 'threat' },
+        },
+      },
+      {
+        id: 'absorb_loss',
+        label: 'Accept the Loss',
+        description: 'Rebuild quietly and avoid escalation. But they\'ll see it as weakness.',
+        consequences: {
+          economicChange: -40,
+          legitimacyChange: 5,
+          militaryReadinessChange: -10,
+          tensionChange: [{ faction: enemyFaction, amount: -10 }],
+        },
+      },
+    ],
+  };
+};
+
+const createClimateEmergencyCrisis = (_state: GameState): CrisisEvent => {
+  return {
+    id: `crisis_climate_${Date.now()}`,
+    type: 'nuclear_accident', // Reusing type for similar urgency
+    title: '🌊 CLIMATE EMERGENCY',
+    description: `A massive ice shelf collapse has created a climate emergency. Rising seas threaten coastal Arctic communities. The world is watching how you respond - this could define your legacy.`,
+    urgency: 'developing',
+    turnsToRespond: 2,
+    choices: [
+      {
+        id: 'massive_aid',
+        label: 'Major Relief Effort',
+        description: 'Deploy all available resources to help affected communities.',
+        consequences: {
+          economicChange: -50,
+          legitimacyChange: 30,
+          influenceChange: 25,
+          achievementUnlock: 'climate_hero',
+          leaderReaction: { leader: 'indigenous_elder', context: 'victory' },
+        },
+      },
+      {
+        id: 'moderate_response',
+        label: 'Standard Response',
+        description: 'Provide aid while maintaining operational capacity.',
+        consequences: {
+          economicChange: -25,
+          legitimacyChange: 10,
+          influenceChange: 10,
+        },
+      },
+      {
+        id: 'exploit_situation',
+        label: 'Exploit the Chaos',
+        description: 'Use the distraction to advance military positions in newly accessible areas.',
+        consequences: {
+          economicChange: 15,
+          legitimacyChange: -25,
+          militaryReadinessChange: 15,
+          tensionChange: [
+            { faction: 'canada', amount: 20 },
+            { faction: 'denmark', amount: 20 },
+            { faction: 'norway', amount: 20 },
+          ],
+        },
+      },
+      {
+        id: 'blame_others',
+        label: 'Blame Rivals',
+        description: 'Point the finger at other nations\' emissions. Deflect responsibility.',
+        consequences: {
+          legitimacyChange: -10,
+          tensionChange: [
+            { faction: 'russia', amount: 10 },
+            { faction: 'china', amount: 10 },
+          ],
+          influenceChange: 5,
+        },
+      },
+    ],
+  };
+};
+
+const createAlliedRequestCrisis = (state: GameState): CrisisEvent => {
+  // Determine ally based on player faction
+  const allyFaction: FactionId = state.playerFaction === 'usa' ? 'canada' :
+                                  state.playerFaction === 'russia' ? 'china' :
+                                  state.playerFaction === 'china' ? 'russia' :
+                                  state.playerFaction === 'eu' ? 'norway' : 'canada';
+  const enemyFaction: FactionId = state.playerFaction === 'russia' || state.playerFaction === 'china' ? 'usa' : 'russia';
+  const allyLeader = allyFaction === 'canada' ? 'carney' :
+                     allyFaction === 'china' ? 'xi' :
+                     allyFaction === 'russia' ? 'putin' :
+                     allyFaction === 'norway' ? 'store' : 'carney';
+
+  return {
+    id: `crisis_ally_${Date.now()}`,
+    type: 'allied_request',
+    title: '🤝 ALLY REQUESTS AID',
+    description: `${allyFaction.toUpperCase()} is facing military pressure from ${enemyFaction.toUpperCase()} and has invoked your mutual defense agreement. They need immediate military support. Refusing could end the alliance.`,
+    urgency: 'urgent',
+    turnsToRespond: 1,
+    choices: [
+      {
+        id: 'full_support',
+        label: 'Full Military Support',
+        description: 'Honor the alliance. Deploy significant forces to their aid.',
+        consequences: {
+          tensionChange: [
+            { faction: enemyFaction, amount: 40 },
+            { faction: allyFaction, amount: -30 },
+          ],
+          economicChange: -30,
+          militaryReadinessChange: -15, // Forces committed elsewhere
+          legitimacyChange: 15,
+          leaderReaction: { leader: allyLeader as LeaderId, context: 'victory' },
+        },
+      },
+      {
+        id: 'limited_support',
+        label: 'Limited Support',
+        description: 'Send some forces but hold back your best units.',
+        consequences: {
+          tensionChange: [
+            { faction: enemyFaction, amount: 20 },
+            { faction: allyFaction, amount: 10 }, // They\'re disappointed
+          ],
+          economicChange: -15,
+          militaryReadinessChange: -5,
+        },
+      },
+      {
+        id: 'diplomatic_only',
+        label: 'Diplomatic Support Only',
+        description: 'Offer political backing but no troops. "We stand with you in spirit."',
+        consequences: {
+          tensionChange: [
+            { faction: enemyFaction, amount: 10 },
+            { faction: allyFaction, amount: 25 }, // Betrayed
+          ],
+          legitimacyChange: -10,
+          influenceChange: -15,
+          leaderReaction: { leader: allyLeader as LeaderId, context: 'threat' },
+        },
+      },
+      {
+        id: 'refuse',
+        label: 'Refuse Aid',
+        description: 'This isn\'t our fight. Preserve our forces.',
+        consequences: {
+          tensionChange: [{ faction: allyFaction, amount: 50 }], // Alliance broken
+          legitimacyChange: -20,
+          influenceChange: -25,
+          economicChange: 10, // Saved money
+          leaderReaction: { leader: allyLeader as LeaderId, context: 'defeat' },
         },
       },
     ],
@@ -655,6 +881,14 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
     icon: '🕊️',
     rarity: 'epic',
     reward: { legitimacy: 30 },
+  },
+  climate_hero: {
+    id: 'climate_hero',
+    name: 'Climate Champion',
+    description: 'Led a major climate emergency relief effort',
+    icon: '🌍',
+    rarity: 'rare',
+    reward: { legitimacy: 20, influencePoints: 20 },
   },
 };
 

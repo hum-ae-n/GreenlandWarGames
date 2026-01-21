@@ -136,6 +136,22 @@ export const createInitialGameState = (playerFaction: FactionId): GameState => {
     nuclearReadiness: 'peacetime',
     combatSurprise: null,
     notifications: [],
+    // Reputation system - starts neutral/positive
+    playerReputation: {
+      militarism: 50,
+      reliability: 70,
+      diplomacy: 60,
+      environmentalism: 50,
+      humanRights: 60,
+      economicFairness: 60,
+      overallReputation: 60,
+      treatiesBroken: 0,
+      treatiesHonored: 0,
+      warsDeclared: 0,
+      peaceTreatiesSigned: 0,
+      zonesConquered: 0,
+      zonesLiberated: 0,
+    },
   };
 };
 

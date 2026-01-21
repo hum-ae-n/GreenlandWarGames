@@ -332,7 +332,7 @@ export const FactionSelect: React.FC<FactionSelectProps> = ({ onSelect }) => {
         </div>
         <div className="credits-copyright">© 2025 Kaipability Ltd. All Rights Reserved.</div>
         <div className="credits-disclaimer">This is a game, not real life.</div>
-        <div className="version">v0.11</div>
+        <div className="version">v0.12</div>
       </div>
     </div>
   );

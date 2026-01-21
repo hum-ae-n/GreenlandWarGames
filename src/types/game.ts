@@ -144,6 +144,25 @@ export interface GameState {
   nuclearReadiness: NuclearReadinessLevel;
   combatSurprise: CombatSurpriseState | null;
   notifications: GameNotification[];
+  // Reputation system
+  playerReputation: PlayerReputation | null;
+}
+
+// Player reputation tracking
+export interface PlayerReputation {
+  militarism: number;        // 0-100 - Are you aggressive or peaceful?
+  reliability: number;       // 0-100 - Do you keep your word?
+  diplomacy: number;         // 0-100 - Are you a good negotiator?
+  environmentalism: number;  // 0-100 - Do you protect the Arctic?
+  humanRights: number;       // 0-100 - Do you respect indigenous rights?
+  economicFairness: number;  // 0-100 - Are your trade practices fair?
+  overallReputation: number; // Calculated from above
+  treatiesBroken: number;
+  treatiesHonored: number;
+  warsDeclared: number;
+  peaceTreatiesSigned: number;
+  zonesConquered: number;
+  zonesLiberated: number;
 }
 
 // Drama state types

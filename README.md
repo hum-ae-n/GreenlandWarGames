@@ -62,15 +62,17 @@ military brinkmanship.
 
 ### Strategic Gameplay
 - **20 turns** spanning a decade of Arctic competition
-- **8 playable factions** with unique abilities and starting positions
+- **4 playable factions** (USA, Russia, China, EU) with unique abilities
 - **Hex-based polar map** with realistic Arctic geography
 - **Dynamic tension system** from cooperation to all-out conflict
+- **Active AI opponents** that expand, build military, and react to your moves
 
 ### Diplomacy & Politics
 - **Civ V-style leader interactions** - World leaders react to your moves
 - **Diplomatic message system** - Receive threats, proposals, and warnings
 - **Legitimacy mechanics** - Your international standing matters
 - **Crisis events** - Navigate territorial disputes and incidents
+- **Reputation system** - Your decisions affect how the world perceives you
 
 ### Military Operations
 - **Naval units** - Icebreakers, submarines, patrol vessels, carriers
@@ -272,11 +274,14 @@ GreenlandWarGames/
 │   │
 │   ├── game/
 │   │   ├── actions.ts           # Action execution logic
+│   │   ├── ai.ts                # AI opponent decision engine
 │   │   ├── drama.ts             # Events & achievements
 │   │   ├── leaders.ts           # Leader AI & reactions
 │   │   ├── military.ts          # Combat resolution
+│   │   ├── reputation.ts        # Player reputation system
 │   │   ├── state.ts             # Game state management
-│   │   └── turns.ts             # Turn progression
+│   │   ├── turns.ts             # Turn progression
+│   │   └── victory.ts           # Victory conditions
 │   │
 │   ├── types/
 │   │   └── game.ts              # TypeScript definitions
