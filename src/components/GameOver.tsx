@@ -3,6 +3,7 @@ import { GameState, FactionId } from '../types/game';
 import { FACTIONS } from '../data/factions';
 import { PixelPortrait, LeaderId, LEADER_NAMES } from './PixelArt';
 import { getLeaderReaction, getLeaderForFaction, LEADERS } from '../game/leaders';
+import { getChiptuneEngine } from '../audio/ChiptuneEngine';
 import './GameOver.css';
 
 interface GameOverProps {
@@ -29,6 +30,20 @@ export const GameOver: React.FC<GameOverProps> = ({ gameState, onRestart }) => {
 
   // Get the winning leader
   const winnerLeader = gameState.winner ? getLeaderForFaction(gameState.winner) : null;
+
+  // Play victory or defeat music
+  useEffect(() => {
+    const engine = getChiptuneEngine();
+    if (isNuclearWar) {
+      engine.stop(); // Silence for nuclear ending
+    } else if (isPlayerWinner) {
+      engine.setMood('victory');
+      engine.start();
+    } else {
+      engine.setMood('defeat');
+      engine.start();
+    }
+  }, [isPlayerWinner, isNuclearWar]);
 
   // Cycle through leader reactions
   useEffect(() => {

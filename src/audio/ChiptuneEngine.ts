@@ -1,7 +1,7 @@
 // Chiptune Music Engine using Web Audio API
 // Generates AMIGA-style music dynamically based on game tension
 
-type TensionMood = 'peaceful' | 'tense' | 'crisis' | 'combat';
+type TensionMood = 'peaceful' | 'tense' | 'crisis' | 'combat' | 'menu' | 'victory' | 'defeat';
 
 // Musical notes (A4 = 440Hz)
 const NOTES: Record<string, number> = {
@@ -37,6 +37,24 @@ const PROGRESSIONS: Record<TensionMood, string[][]> = {
     ['D3', 'F3', 'A3'],  // D minor
     ['E3', 'G3', 'B3'],  // E minor
   ],
+  menu: [
+    ['C4', 'E4', 'G4'],  // C major - majestic
+    ['G3', 'B3', 'D4'],  // G major
+    ['A3', 'C4', 'E4'],  // A minor - mysterious
+    ['F3', 'A3', 'C4'],  // F major - hopeful
+  ],
+  victory: [
+    ['C4', 'E4', 'G4'],  // C major - triumphant
+    ['G3', 'B3', 'D4'],  // G major
+    ['C4', 'E4', 'G4'],  // C major
+    ['F3', 'A3', 'C4'],  // F major - celebratory
+  ],
+  defeat: [
+    ['A3', 'C4', 'E4'],  // A minor - somber
+    ['D3', 'F3', 'A3'],  // D minor
+    ['E3', 'G3', 'B3'],  // E minor
+    ['A3', 'C4', 'E4'],  // A minor
+  ],
 };
 
 // Melodic patterns for each mood
@@ -45,6 +63,9 @@ const MELODIES: Record<TensionMood, string[]> = {
   tense: ['A4', 'REST', 'E4', 'REST', 'A4', 'G4', 'E4', 'REST', 'A4', 'REST', 'B4', 'A4', 'G4', 'E4', 'REST', 'REST'],
   crisis: ['E4', 'E4', 'E4', 'REST', 'E4', 'E4', 'F4', 'E4', 'D4', 'REST', 'E4', 'E4', 'E4', 'F4', 'G4', 'REST'],
   combat: ['E4', 'E4', 'E5', 'E4', 'E4', 'E5', 'D5', 'E5', 'E4', 'E4', 'E5', 'E4', 'G4', 'E5', 'D5', 'C5'],
+  menu: ['G4', 'REST', 'C5', 'B4', 'A4', 'G4', 'REST', 'E4', 'F4', 'G4', 'A4', 'REST', 'G4', 'F4', 'E4', 'D4'],
+  victory: ['C5', 'E5', 'G5', 'E5', 'C5', 'G4', 'C5', 'E5', 'G5', 'REST', 'G5', 'A5', 'G5', 'E5', 'C5', 'REST'],
+  defeat: ['A4', 'REST', 'E4', 'REST', 'A4', 'REST', 'E4', 'REST', 'D4', 'REST', 'A3', 'REST', 'E4', 'REST', 'A3', 'REST'],
 };
 
 // Bass patterns
@@ -53,6 +74,9 @@ const BASS_PATTERNS: Record<TensionMood, string[]> = {
   tense: ['A2', 'REST', 'A2', 'A2', 'E2', 'REST', 'E2', 'E2', 'D2', 'REST', 'D2', 'D2', 'A2', 'REST', 'A2', 'A2'],
   crisis: ['E2', 'E2', 'REST', 'E2', 'F2', 'F2', 'REST', 'F2', 'E2', 'E2', 'REST', 'E2', 'D2', 'D2', 'REST', 'D2'],
   combat: ['E2', 'E2', 'E2', 'E2', 'E2', 'E2', 'E2', 'E2', 'D2', 'D2', 'D2', 'D2', 'E2', 'E2', 'E2', 'E2'],
+  menu: ['C2', 'REST', 'G2', 'REST', 'C2', 'REST', 'G2', 'REST', 'A2', 'REST', 'E2', 'REST', 'F2', 'REST', 'G2', 'REST'],
+  victory: ['C2', 'C2', 'G2', 'G2', 'C2', 'C2', 'G2', 'G2', 'C2', 'C2', 'F2', 'F2', 'G2', 'G2', 'C2', 'C2'],
+  defeat: ['A2', 'REST', 'REST', 'REST', 'D2', 'REST', 'REST', 'REST', 'E2', 'REST', 'REST', 'REST', 'A2', 'REST', 'REST', 'REST'],
 };
 
 // Add lower octave notes
@@ -244,6 +268,18 @@ export class ChiptuneEngine {
         // Minimal drums
         if (beatInBar === 0) this.playDrum(this.scheduledTime, 'kick');
         if (beatInBar === 8) this.playDrum(this.scheduledTime, 'snare');
+      } else if (this.currentMood === 'menu') {
+        // Atmospheric menu music - sparse drums
+        if (beatInBar === 0) this.playDrum(this.scheduledTime, 'kick');
+        if (beatInBar === 8) this.playDrum(this.scheduledTime, 'hihat');
+      } else if (this.currentMood === 'victory') {
+        // Celebratory drums
+        if (beatInBar % 4 === 0) this.playDrum(this.scheduledTime, 'kick');
+        if (beatInBar % 4 === 2) this.playDrum(this.scheduledTime, 'snare');
+        if (beatInBar % 2 === 1) this.playDrum(this.scheduledTime, 'hihat');
+      } else if (this.currentMood === 'defeat') {
+        // Somber, slow drums
+        if (beatInBar === 0) this.playDrum(this.scheduledTime, 'kick');
       } else {
         // Peaceful - light drums
         if (beatInBar === 0 || beatInBar === 8) this.playDrum(this.scheduledTime, 'kick');
@@ -284,6 +320,9 @@ export class ChiptuneEngine {
       case 'tense': this.bpm = 110; break;
       case 'crisis': this.bpm = 130; break;
       case 'combat': this.bpm = 150; break;
+      case 'menu': this.bpm = 90; break;
+      case 'victory': this.bpm = 120; break;
+      case 'defeat': this.bpm = 70; break;
     }
   }
 

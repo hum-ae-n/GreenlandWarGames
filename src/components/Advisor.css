@@ -1,0 +1,388 @@
+/* Advisor Container */
+.advisor-container {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: linear-gradient(180deg, #1a2744 0%, #0f1a2e 100%);
+  border: 2px solid #3a5a8c;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  transition: all 0.3s ease;
+  max-width: 320px;
+  min-width: 280px;
+}
+
+.advisor-container.minimized {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.advisor-container.minimized:hover {
+  border-color: #4a8af8;
+}
+
+.advisor-idle {
+  color: #888;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Advisor Header */
+.advisor-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.advisor-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.advisor-portrait {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.advisor-mood {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 2px solid #0f1a2e;
+}
+
+.advisor-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.advisor-name {
+  display: block;
+  font-weight: bold;
+  color: #8ab4f8;
+  font-size: 14px;
+}
+
+.advisor-role {
+  display: block;
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.advisor-toggle {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Advisor Body */
+.advisor-body {
+  padding: 12px;
+}
+
+.advisor-message {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  border-left: 3px solid #666;
+}
+
+.advisor-message.urgent {
+  border-left-color: #f44336;
+  background: rgba(244, 67, 54, 0.1);
+}
+
+.advisor-message.warning {
+  border-left-color: #ff9800;
+  background: rgba(255, 152, 0, 0.1);
+}
+
+.advisor-message.suggestion {
+  border-left-color: #9c27b0;
+  background: rgba(156, 39, 176, 0.1);
+}
+
+.advisor-message.info {
+  border-left-color: #4a8a5c;
+  background: rgba(74, 138, 92, 0.1);
+}
+
+.tip-category {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-bottom: 8px;
+}
+
+.advisor-message.urgent .tip-category {
+  background: #f44336;
+  color: white;
+}
+
+.advisor-message.warning .tip-category {
+  background: #ff9800;
+  color: black;
+}
+
+.advisor-message.suggestion .tip-category {
+  background: #9c27b0;
+  color: white;
+}
+
+.advisor-message.info .tip-category {
+  background: #4a8a5c;
+  color: white;
+}
+
+.tip-text {
+  color: #e0e0e0;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
+
+.tip-text .cursor {
+  color: #8ab4f8;
+  animation: blink 0.5s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.tip-action {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.action-label {
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.action-text {
+  display: block;
+  color: #8ab4f8;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Advisor Navigation */
+.advisor-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #888;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.tip-counter {
+  font-size: 11px;
+  color: #666;
+}
+
+/* Diplomacy Panel */
+.diplomacy-panel {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.diplomacy-header {
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.diplomacy-header h3 {
+  margin: 0;
+  font-size: 13px;
+  color: #8ab4f8;
+  font-weight: 600;
+}
+
+.faction-list {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.faction-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.faction-row:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.faction-row.selected {
+  border-color: #8ab4f8;
+  background: rgba(138, 180, 248, 0.1);
+}
+
+.faction-flag {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.faction-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.faction-info .faction-name {
+  display: block;
+  font-size: 11px;
+  font-weight: bold;
+  color: #e0e0e0;
+  margin-bottom: 4px;
+}
+
+.tension-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+
+.tension-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.tension-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.faction-portrait {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+/* Recent Messages */
+.recent-messages {
+  padding: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.recent-messages h4 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.message-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.message-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.message-item.threat {
+  border-left: 2px solid #f44336;
+}
+
+.message-item.warning {
+  border-left: 2px solid #ff9800;
+}
+
+.message-item.greeting {
+  border-left: 2px solid #4a8a5c;
+}
+
+.message-item.complaint {
+  border-left: 2px solid #ff9800;
+}
+
+.msg-flag {
+  font-size: 14px;
+}
+
+.msg-text {
+  font-size: 11px;
+  color: #aaa;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .advisor-container {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    max-width: none;
+  }
+}

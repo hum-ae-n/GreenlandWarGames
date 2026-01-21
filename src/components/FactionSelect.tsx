@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { FactionId } from '../types/game';
 import { getPlayableFactions } from '../data/factions';
+import { getChiptuneEngine } from '../audio/ChiptuneEngine';
 
 interface FactionSelectProps {
   onSelect: (faction: FactionId) => void;
@@ -7,6 +9,17 @@ interface FactionSelectProps {
 
 export const FactionSelect: React.FC<FactionSelectProps> = ({ onSelect }) => {
   const playableFactions = getPlayableFactions();
+
+  // Start menu music
+  useEffect(() => {
+    const engine = getChiptuneEngine();
+    engine.setMood('menu');
+    engine.start();
+
+    return () => {
+      // Don't stop - let it continue into gameplay
+    };
+  }, []);
 
   return (
     <div className="faction-select-screen">
