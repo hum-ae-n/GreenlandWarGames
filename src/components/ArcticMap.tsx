@@ -360,18 +360,253 @@ export const ArcticMap: React.FC<ArcticMapProps> = ({
   );
 };
 
-// Zone detail panel component
+// Zone detail panel component with action buttons
 interface ZoneDetailProps {
+  zone: MapZone;
+  gameState: GameState;
+  onAction?: (action: string, zoneId: string) => void;
+}
+
+export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onAction }) => {
+  const controller = zone.controller ? FACTIONS[zone.controller] : null;
+  const isPlayerControlled = zone.controller === gameState.playerFaction;
+  const isUnclaimed = !zone.controller;
+
+  // Calculate tension with zone controller
+  let tensionWithController = 'none';
+  if (controller && !isPlayerControlled) {
+    const rel = gameState.relations.find(r =>
+      r.factions.includes(gameState.playerFaction) && r.factions.includes(zone.controller!)
+    );
+    if (rel) tensionWithController = rel.tensionLevel;
+  }
+
+  // Get suggested actions for this zone
+  const getSuggestedActions = () => {
+    const actions: { id: string; label: string; icon: string; description: string; type: 'diplomatic' | 'economic' | 'military' | 'covert' }[] = [];
+
+    if (isUnclaimed) {
+      actions.push({
+        id: 'claim',
+        label: 'Claim Territory',
+        icon: '🚩',
+        description: 'Assert sovereignty over this zone',
+        type: 'diplomatic',
+      });
+      actions.push({
+        id: 'explore',
+        label: 'Resource Survey',
+        icon: '🔍',
+        description: 'Survey for undiscovered resources',
+        type: 'economic',
+      });
+    } else if (isPlayerControlled) {
+      actions.push({
+        id: 'fortify',
+        label: 'Fortify Position',
+        icon: '🏰',
+        description: 'Strengthen defenses in this zone',
+        type: 'military',
+      });
+      actions.push({
+        id: 'extract',
+        label: 'Extract Resources',
+        icon: '⛏️',
+        description: 'Boost resource extraction',
+        type: 'economic',
+      });
+      if (zone.type === 'chokepoint') {
+        actions.push({
+          id: 'toll',
+          label: 'Control Shipping',
+          icon: '🚢',
+          description: 'Collect tolls from shipping traffic',
+          type: 'economic',
+        });
+      }
+    } else {
+      // Enemy controlled
+      if (tensionWithController === 'cooperation' || tensionWithController === 'competition') {
+        actions.push({
+          id: 'negotiate',
+          label: 'Negotiate Access',
+          icon: '🤝',
+          description: 'Request shared access diplomatically',
+          type: 'diplomatic',
+        });
+        actions.push({
+          id: 'invest',
+          label: 'Joint Venture',
+          icon: '💼',
+          description: 'Propose joint resource development',
+          type: 'economic',
+        });
+      }
+      if (tensionWithController === 'confrontation' || tensionWithController === 'crisis') {
+        actions.push({
+          id: 'pressure',
+          label: 'Apply Pressure',
+          icon: '💪',
+          description: 'Economic and diplomatic pressure',
+          type: 'diplomatic',
+        });
+        actions.push({
+          id: 'patrol',
+          label: 'Freedom of Navigation',
+          icon: '⚓',
+          description: 'Assert navigation rights',
+          type: 'military',
+        });
+      }
+      if (tensionWithController === 'crisis' || tensionWithController === 'conflict') {
+        actions.push({
+          id: 'blockade',
+          label: 'Naval Blockade',
+          icon: '🚫',
+          description: 'Block shipping to this zone',
+          type: 'military',
+        });
+        actions.push({
+          id: 'attack',
+          label: 'Military Operation',
+          icon: '⚔️',
+          description: 'Launch attack to seize zone',
+          type: 'military',
+        });
+      }
+      actions.push({
+        id: 'intel',
+        label: 'Gather Intelligence',
+        icon: '🕵️',
+        description: 'Covert reconnaissance',
+        type: 'covert',
+      });
+    }
+
+    return actions;
+  };
+
+  const suggestedActions = getSuggestedActions();
+
+  return (
+    <div className="zone-detail">
+      <div className="zone-header">
+        <h3>{zone.name}</h3>
+        <div className="zone-type">{zone.type.replace('_', ' ').toUpperCase()}</div>
+      </div>
+
+      {controller ? (
+        <div className="zone-controller" style={{
+          color: controller.color,
+          borderColor: controller.color,
+        }}>
+          <span className="controller-flag">
+            {zone.controller === 'usa' ? '🇺🇸' :
+             zone.controller === 'russia' ? '🇷🇺' :
+             zone.controller === 'china' ? '🇨🇳' :
+             zone.controller === 'canada' ? '🇨🇦' :
+             zone.controller === 'norway' ? '🇳🇴' :
+             zone.controller === 'denmark' ? '🇩🇰' : '🏛️'}
+          </span>
+          <span>Controlled by {controller.shortName}</span>
+          {!isPlayerControlled && (
+            <span className={`tension-badge ${tensionWithController}`}>
+              {tensionWithController}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="zone-unclaimed">
+          <span>🏳️</span> Unclaimed Territory
+        </div>
+      )}
+
+      <div className="zone-resources-compact">
+        <div className="resource-item" title="Oil">
+          <span>🛢️</span>
+          <span>{zone.resources.oil}</span>
+        </div>
+        <div className="resource-item" title="Gas">
+          <span>💨</span>
+          <span>{zone.resources.gas}</span>
+        </div>
+        <div className="resource-item" title="Minerals">
+          <span>💎</span>
+          <span>{zone.resources.minerals}</span>
+        </div>
+        <div className="resource-item" title="Shipping">
+          <span>🚢</span>
+          <span>{zone.resources.shipping}</span>
+        </div>
+        <div className="resource-item" title="Ice months">
+          <span>❄️</span>
+          <span>{zone.iceMonths}mo</span>
+        </div>
+      </div>
+
+      {/* Suggested Actions */}
+      <div className="zone-actions">
+        <h4>Available Actions</h4>
+        <div className="action-buttons">
+          {suggestedActions.map(action => (
+            <button
+              key={action.id}
+              className={`zone-action-btn ${action.type}`}
+              onClick={() => onAction?.(action.id, zone.id)}
+              title={action.description}
+            >
+              <span className="action-icon">{action.icon}</span>
+              <span className="action-label">{action.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Military Presence */}
+      {Object.keys(zone.militaryPresence).length > 0 && (
+        <div className="zone-military-presence">
+          <h4>Military Forces</h4>
+          <div className="forces-list">
+            {Object.entries(zone.militaryPresence).map(([factionId, strength]) => (
+              <div
+                key={factionId}
+                className={`force-entry ${factionId === gameState.playerFaction ? 'friendly' : 'enemy'}`}
+                style={{ borderColor: FACTIONS[factionId as FactionId].color }}
+              >
+                <span style={{ color: FACTIONS[factionId as FactionId].color }}>
+                  {FACTIONS[factionId as FactionId].shortName}
+                </span>
+                <span className="force-strength">{strength} units</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Strategic Value */}
+      <div className="zone-strategic">
+        <span className="strategic-label">Strategic Value:</span>
+        <span className="strategic-stars">
+          {'★'.repeat(Math.min(5, Math.ceil((zone.resources.oil + zone.resources.gas + zone.resources.shipping + (zone.type === 'chokepoint' ? 5 : 0)) / 5)))}
+          {'☆'.repeat(5 - Math.min(5, Math.ceil((zone.resources.oil + zone.resources.gas + zone.resources.shipping + (zone.type === 'chokepoint' ? 5 : 0)) / 5)))}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// Legacy zone detail for backwards compatibility
+interface ZoneDetailLegacyProps {
   zone: MapZone;
   gameState: GameState;
 }
 
-export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState: _gameState }) => {
-  void _gameState; // Available for future use
+export const ZoneDetailLegacy: React.FC<ZoneDetailLegacyProps> = ({ zone, gameState: _gameState }) => {
+  void _gameState;
   const controller = zone.controller ? FACTIONS[zone.controller] : null;
 
   return (
-    <div className="zone-detail">
+    <div className="zone-detail-legacy">
       <h3>{zone.name}</h3>
       <div className="zone-type">{zone.type.replace('_', ' ').toUpperCase()}</div>
 
@@ -380,30 +615,6 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState: _gameSt
           Controlled by: {controller.shortName}
         </div>
       )}
-
-      <div className="zone-resources">
-        <h4>Resources</h4>
-        <div className="resource-bar">
-          <span>Oil</span>
-          <div className="bar" style={{ width: `${zone.resources.oil * 10}%` }} />
-          <span>{zone.resources.oil}/10</span>
-        </div>
-        <div className="resource-bar">
-          <span>Gas</span>
-          <div className="bar" style={{ width: `${zone.resources.gas * 10}%` }} />
-          <span>{zone.resources.gas}/10</span>
-        </div>
-        <div className="resource-bar">
-          <span>Minerals</span>
-          <div className="bar" style={{ width: `${zone.resources.minerals * 10}%` }} />
-          <span>{zone.resources.minerals}/10</span>
-        </div>
-        <div className="resource-bar">
-          <span>Shipping</span>
-          <div className="bar shipping" style={{ width: `${zone.resources.shipping * 10}%` }} />
-          <span>{zone.resources.shipping}/10</span>
-        </div>
-      </div>
 
       <div className="zone-ice">
         Ice Coverage: {zone.iceMonths} months/year

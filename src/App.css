@@ -580,62 +580,236 @@ body {
   color: var(--text-secondary);
 }
 
-/* Zone Detail */
+/* Zone Detail - Enhanced */
 .zone-detail {
   padding: 1rem;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
 }
 
+.zone-detail .zone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .zone-detail h3 {
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
+  font-size: 1rem;
+  margin: 0;
+  color: #fff;
 }
 
 .zone-type {
   font-size: 0.625rem;
   color: var(--text-secondary);
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  background: rgba(255,255,255,0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
 .zone-controller {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.75rem;
-  margin-bottom: 0.5rem;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  border-left: 3px solid;
+  margin-bottom: 10px;
 }
 
-.zone-resources {
-  margin-bottom: 0.5rem;
+.controller-flag {
+  font-size: 16px;
 }
 
-.zone-resources h4 {
+.tension-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-left: auto;
+}
+
+.tension-badge.cooperation { background: #4a8a5c; color: white; }
+.tension-badge.competition { background: #f9a825; color: black; }
+.tension-badge.confrontation { background: #ff9800; color: black; }
+.tension-badge.crisis { background: #f44336; color: white; }
+.tension-badge.conflict { background: #b71c1c; color: white; }
+
+.zone-unclaimed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  padding: 8px 12px;
+  background: rgba(100,100,100,0.2);
+  border-radius: 8px;
+  border-left: 3px solid #666;
+  margin-bottom: 10px;
+  color: #888;
+}
+
+.zone-resources-compact {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+}
+
+.resource-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.resource-item span:first-child {
+  font-size: 16px;
+}
+
+/* Zone Actions */
+.zone-actions {
+  margin: 12px 0;
+}
+
+.zone-actions h4 {
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.zone-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.zone-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.zone-action-btn.diplomatic {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.zone-action-btn.economic {
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+  color: #000;
+}
+
+.zone-action-btn.military {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+}
+
+.zone-action-btn.covert {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+}
+
+.action-icon {
+  font-size: 14px;
+}
+
+.action-label {
+  font-weight: 500;
+}
+
+/* Military Presence in Zone */
+.zone-military-presence {
+  margin-top: 12px;
+}
+
+.zone-military-presence h4 {
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.forces-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.force-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+  border-left: 3px solid;
+  font-size: 11px;
+}
+
+.force-entry.friendly {
+  background: rgba(74, 138, 92, 0.2);
+}
+
+.force-entry.enemy {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.force-strength {
+  color: #888;
+}
+
+/* Strategic Value */
+.zone-strategic {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 11px;
+}
+
+.strategic-label {
+  color: #888;
+}
+
+.strategic-stars {
+  color: #ffd700;
+  letter-spacing: 2px;
+}
+
+/* Legacy zone detail styles */
+.zone-detail-legacy .zone-resources h4 {
   font-size: 0.625rem;
   color: var(--text-secondary);
   margin-bottom: 0.25rem;
 }
 
-.resource-bar {
+.zone-detail-legacy .resource-bar {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.625rem;
   margin-bottom: 0.25rem;
-}
-
-.resource-bar span:first-child {
-  width: 50px;
-  color: var(--text-secondary);
-}
-
-.resource-bar .bar {
-  height: 4px;
-  background: var(--accent-blue);
-  border-radius: 2px;
-  max-width: 100px;
-}
-
-.resource-bar .bar.shipping {
-  background: var(--accent-yellow);
 }
 
 .zone-ice {

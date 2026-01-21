@@ -262,6 +262,27 @@ const LEADER_MESSAGES: Record<LeaderId, LeaderMessage[]> = {
       "The caribou migrate differently now. Do you notice?",
     ]},
   ],
+  lukashenko: [
+    { type: 'greeting', messages: [
+      "Belarus stands with our Russian brothers!",
+      "The last dictator of Europe, they call me. I call it strength!",
+      "Minsk sees everything. We are not to be ignored!"
+    ]},
+    { type: 'taunt', messages: [
+      "You think sanctions hurt us? We only grow stronger!",
+      "Western weakness is amusing to watch!",
+      "Your democracies are chaos. Order is power!"
+    ]},
+    { type: 'warning', messages: [
+      "Do not provoke the Union State!",
+      "Belarus has capabilities you know nothing about!",
+      "We will support our allies with everything we have!"
+    ]},
+    { type: 'threat', messages: [
+      "Push us and face the consequences!",
+      "Nuclear weapons are stationed on our soil. Remember that!",
+    ]},
+  ],
 };
 
 // Get a random message for a leader

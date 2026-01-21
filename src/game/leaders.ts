@@ -643,6 +643,45 @@ export const LEADERS: Record<LeaderId, LeaderPersonality> = {
       economic_pressure: ["Our communities suffer when powers clash."],
     },
   },
+
+  lukashenko: {
+    id: 'lukashenko',
+    factionId: 'belarus',
+    name: 'Alexander Lukashenko',
+    title: 'President of Belarus',
+    traits: ['aggressive', 'unpredictable', 'nationalist'],
+    greetings: [
+      "Belarus and Russia are one! The Union State is strong!",
+      "The last dictator of Europe welcomes you. Proudly!",
+      "Minsk stands ready to support our allies!",
+    ],
+    threats: [
+      "Do not test the patience of the Union State!",
+      "Belarus has capabilities you cannot imagine!",
+      "We host weapons that can reach anywhere!",
+    ],
+    negotiations: [
+      "Belarus is open to practical arrangements.",
+      "We can discuss... if the terms are acceptable.",
+      "Sanctions must end before real talks begin.",
+    ],
+    victories: [
+      "Belarus proves the West wrong again!",
+      "The Union State prevails!",
+      "Our strength is vindicated!",
+    ],
+    defeats: [
+      "This changes nothing! Belarus remains strong!",
+      "Western plots will not succeed!",
+      "We will return stronger than before!",
+    ],
+    reactions: {
+      military_buildup: ["Good! Show them we mean business!"],
+      treaty_offer: ["What do we get in return? Belarus demands respect!"],
+      territorial_claim: ["Belarus supports our allies' claims!"],
+      economic_pressure: ["Sanctions only make us more determined!"],
+    },
+  },
 };
 
 // Get a reaction from a leader based on context
