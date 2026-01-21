@@ -27,9 +27,16 @@ import { Advisor, DiplomacyPanel } from './components/Advisor';
 import { LeaderId, PixelPortrait, LEADER_NAMES } from './components/PixelArt';
 import { ReputationMini, ReputationPanel } from './components/ReputationPanel';
 import { ObjectivesMini, ObjectivesPanel } from './components/ObjectivesPanel';
+import { EconomicsMini, EconomicsPanel } from './components/EconomicsPanel';
 import { FACTIONS } from './data/factions';
 import { getChiptuneEngine } from './audio/ChiptuneEngine';
 import { DECISION_TEMPLATES, DecisionType } from './game/reputation';
+import {
+  createInitialEconomicState,
+  EconomicState,
+  TradeDeal,
+  Sanction
+} from './game/economics';
 import './App.css';
 
 type GameScreen = 'faction_select' | 'playing' | 'game_over';
@@ -62,6 +69,10 @@ function App() {
   // Panel display state
   const [showReputationPanel, setShowReputationPanel] = useState(false);
   const [showObjectivesPanel, setShowObjectivesPanel] = useState(false);
+  const [showEconomicsPanel, setShowEconomicsPanel] = useState(false);
+
+  // Economic state
+  const [economicState, setEconomicState] = useState<EconomicState | null>(null);
 
   // Handle window resize
   useEffect(() => {
@@ -147,6 +158,7 @@ function App() {
   const handleFactionSelect = useCallback((factionId: FactionId) => {
     const state = createInitialGameState(factionId);
     setGameState(state);
+    setEconomicState(createInitialEconomicState());
     setScreen('playing');
 
     // Show tutorial for new players, then show greeting
@@ -554,18 +566,130 @@ function App() {
     if (!gameState) return;
 
     const newState = JSON.parse(JSON.stringify(gameState));
-    advanceTurn(newState);
+    const newEconomicState = economicState ? JSON.parse(JSON.stringify(economicState)) : null;
+
+    advanceTurn(newState, newEconomicState);
     setGameState(newState);
+    if (newEconomicState) {
+      setEconomicState(newEconomicState);
+    }
 
     getChiptuneEngine().playSfx('click');
 
     if (newState.gameOver) {
       setScreen('game_over');
     }
-  }, [gameState]);
+  }, [gameState, economicState]);
+
+  // Economic handlers
+  const handleDealCreated = useCallback((deal: TradeDeal) => {
+    if (!economicState || !gameState) return;
+
+    const newEconomicState = JSON.parse(JSON.stringify(economicState)) as EconomicState;
+    newEconomicState.tradeDeals.push(deal);
+
+    // Deduct influence cost
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    newState.factions[newState.playerFaction].resources.influencePoints -= 25; // Base cost
+
+    // Update reputation for economic cooperation
+    if (newState.playerReputation) {
+      newState.playerReputation.economicFairness = Math.min(100,
+        newState.playerReputation.economicFairness + 5
+      );
+      newState.playerReputation.diplomacy = Math.min(100,
+        newState.playerReputation.diplomacy + 3
+      );
+    }
+
+    setEconomicState(newEconomicState);
+    setGameState(newState);
+    getChiptuneEngine().playSfx('success');
+  }, [economicState, gameState]);
+
+  const handleSanctionImposed = useCallback((sanction: Sanction) => {
+    if (!economicState || !gameState) return;
+
+    const newEconomicState = JSON.parse(JSON.stringify(economicState)) as EconomicState;
+    newEconomicState.activeSanctions.push(sanction);
+
+    // Deduct legitimacy cost
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    newState.factions[newState.playerFaction].resources.legitimacy -= 10;
+
+    // Update reputation
+    if (newState.playerReputation) {
+      newState.playerReputation.economicFairness = Math.max(0,
+        newState.playerReputation.economicFairness - 8
+      );
+      newState.playerReputation.diplomacy = Math.max(0,
+        newState.playerReputation.diplomacy - 5
+      );
+      if (sanction.worldReaction === 'opposed') {
+        newState.playerReputation.reliability = Math.max(0,
+          newState.playerReputation.reliability - 5
+        );
+      }
+    }
+
+    // Increase tension with target
+    updateTension(newState, newState.playerFaction, sanction.targetFaction, 25);
+
+    setEconomicState(newEconomicState);
+    setGameState(newState);
+    getChiptuneEngine().playSfx('warning');
+  }, [economicState, gameState]);
+
+  const handleDealCanceled = useCallback((dealId: string) => {
+    if (!economicState || !gameState) return;
+
+    const newEconomicState = JSON.parse(JSON.stringify(economicState)) as EconomicState;
+    const deal = newEconomicState.tradeDeals.find(d => d.id === dealId);
+    if (deal) {
+      deal.isActive = false;
+    }
+
+    // Update reputation for breaking deal
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    if (newState.playerReputation) {
+      newState.playerReputation.reliability = Math.max(0,
+        newState.playerReputation.reliability - 10
+      );
+      newState.playerReputation.treatiesBroken++;
+    }
+
+    setEconomicState(newEconomicState);
+    setGameState(newState);
+    getChiptuneEngine().playSfx('click');
+  }, [economicState, gameState]);
+
+  const handleSanctionLifted = useCallback((sanctionId: string) => {
+    if (!economicState || !gameState) return;
+
+    const newEconomicState = JSON.parse(JSON.stringify(economicState)) as EconomicState;
+    newEconomicState.activeSanctions = newEconomicState.activeSanctions.filter(
+      s => s.id !== sanctionId
+    );
+
+    // Improve reputation for lifting sanctions
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    if (newState.playerReputation) {
+      newState.playerReputation.economicFairness = Math.min(100,
+        newState.playerReputation.economicFairness + 3
+      );
+      newState.playerReputation.diplomacy = Math.min(100,
+        newState.playerReputation.diplomacy + 5
+      );
+    }
+
+    setEconomicState(newEconomicState);
+    setGameState(newState);
+    getChiptuneEngine().playSfx('success');
+  }, [economicState, gameState]);
 
   const handleRestart = useCallback(() => {
     setGameState(null);
+    setEconomicState(null);
     setSelectedZone(null);
     setScreen('faction_select');
     getChiptuneEngine().stop();
@@ -633,6 +757,13 @@ function App() {
             gameState={gameState}
             onClick={() => setShowObjectivesPanel(true)}
           />
+          {economicState && (
+            <EconomicsMini
+              state={gameState}
+              economicState={economicState}
+              onClick={() => setShowEconomicsPanel(true)}
+            />
+          )}
           <DiplomacyPanel
             gameState={gameState}
             onSelectLeader={(leaderId, _factionId) => {
@@ -837,6 +968,23 @@ function App() {
             <ObjectivesPanel
               gameState={gameState}
               onClose={() => setShowObjectivesPanel(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Economics Panel Modal */}
+      {showEconomicsPanel && economicState && (
+        <div className="modal-overlay" onClick={() => setShowEconomicsPanel(false)}>
+          <div className="modal-content panel-modal economics-modal" onClick={e => e.stopPropagation()}>
+            <EconomicsPanel
+              state={gameState}
+              economicState={economicState}
+              onDealCreated={handleDealCreated}
+              onSanctionImposed={handleSanctionImposed}
+              onDealCanceled={handleDealCanceled}
+              onSanctionLifted={handleSanctionLifted}
+              onClose={() => setShowEconomicsPanel(false)}
             />
           </div>
         </div>

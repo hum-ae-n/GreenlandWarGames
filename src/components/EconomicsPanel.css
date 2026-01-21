@@ -1,0 +1,790 @@
+/* Economics Panel Styles */
+
+.economics-panel {
+  background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.econ-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #30363d;
+}
+
+.econ-header h3 {
+  margin: 0;
+  color: #58a6ff;
+  font-size: 1.3rem;
+}
+
+.econ-header .close-btn {
+  background: transparent;
+  border: none;
+  color: #8b949e;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.econ-header .close-btn:hover {
+  background: #30363d;
+  color: #f0f6fc;
+}
+
+.econ-notification {
+  background: #238636;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.econ-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 12px;
+}
+
+.econ-tabs button {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.econ-tabs button:hover {
+  background: #21262d;
+  color: #f0f6fc;
+}
+
+.econ-tabs button.active {
+  background: #238636;
+  border-color: #238636;
+  color: white;
+}
+
+.econ-content {
+  color: #c9d1d9;
+}
+
+/* Overview Tab */
+.econ-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.econ-metric {
+  background: #21262d;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.metric-label {
+  display: block;
+  color: #8b949e;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #f0f6fc;
+}
+
+.metric-bar {
+  height: 6px;
+  background: #30363d;
+  border-radius: 3px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.metric-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.metric-fill.power {
+  background: linear-gradient(90deg, #238636, #3fb950);
+}
+
+.metric-fill.vulnerability {
+  background: linear-gradient(90deg, #f0883e, #da3633);
+}
+
+.econ-section {
+  background: #161b22;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.econ-section h4 {
+  margin: 0 0 12px 0;
+  color: #8b949e;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.econ-section.warning {
+  border: 1px solid #f0883e;
+  background: rgba(240, 136, 62, 0.1);
+}
+
+.market-prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.price-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #21262d;
+  border-radius: 4px;
+}
+
+.price-high {
+  color: #da3633;
+}
+
+.price-low {
+  color: #3fb950;
+}
+
+.partner-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.partner-tag {
+  padding: 4px 12px;
+  background: #21262d;
+  border-radius: 16px;
+  border: 2px solid;
+  font-size: 0.85rem;
+}
+
+.no-data {
+  color: #6e7681;
+  font-style: italic;
+}
+
+.deal-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deal-mini {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: #21262d;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.turns-left {
+  color: #8b949e;
+  font-size: 0.8rem;
+}
+
+.more-deals {
+  color: #58a6ff;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.risk-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #21262d;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  text-transform: capitalize;
+}
+
+.risk-item.disrupted {
+  background: rgba(218, 54, 51, 0.2);
+  border: 1px solid #da3633;
+}
+
+.risk-level {
+  color: #f0883e;
+}
+
+/* Trade Tab */
+.trade-section {
+  margin-bottom: 24px;
+}
+
+.trade-section h4 {
+  margin: 0 0 16px 0;
+  color: #58a6ff;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 8px;
+}
+
+.deal-form {
+  background: #161b22;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.form-row {
+  margin-bottom: 16px;
+}
+
+.form-row label {
+  display: block;
+  color: #8b949e;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.form-row select {
+  width: 100%;
+  padding: 10px;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #f0f6fc;
+  font-size: 1rem;
+}
+
+.form-row select:focus {
+  outline: none;
+  border-color: #58a6ff;
+}
+
+.deal-preview {
+  background: #21262d;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.deal-preview p {
+  margin: 4px 0;
+}
+
+.deal-cost {
+  color: #f0883e;
+}
+
+.deal-duration {
+  color: #8b949e;
+}
+
+.propose-btn {
+  width: 100%;
+  padding: 12px;
+  background: #238636;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.propose-btn:hover:not(:disabled) {
+  background: #2ea043;
+}
+
+.propose-btn:disabled {
+  background: #30363d;
+  color: #6e7681;
+  cursor: not-allowed;
+}
+
+.deals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.deal-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.deal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.deal-name {
+  font-weight: 600;
+  color: #f0f6fc;
+}
+
+.deal-status {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.deal-status.active {
+  background: #238636;
+  color: white;
+}
+
+.deal-status.inactive {
+  background: #6e7681;
+  color: #f0f6fc;
+}
+
+.deal-desc {
+  color: #8b949e;
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.deal-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #6e7681;
+  margin-bottom: 12px;
+}
+
+.cancel-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid #da3633;
+  color: #da3633;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #da3633;
+  color: white;
+}
+
+/* Sanctions Tab */
+.sanctions-section {
+  margin-bottom: 24px;
+}
+
+.sanctions-section h4 {
+  margin: 0 0 16px 0;
+  color: #da3633;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 8px;
+}
+
+.sanction-form {
+  background: #161b22;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.sanction-preview {
+  background: #21262d;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.sanction-effect {
+  color: #da3633;
+}
+
+.sanction-cost {
+  color: #f0883e;
+}
+
+.sanction-tension {
+  color: #f0883e;
+}
+
+.impose-btn {
+  width: 100%;
+  padding: 12px;
+  background: #da3633;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.impose-btn:hover:not(:disabled) {
+  background: #f85149;
+}
+
+.impose-btn:disabled {
+  background: #30363d;
+  color: #6e7681;
+  cursor: not-allowed;
+}
+
+.sanctions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sanction-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.sanction-card.against-us {
+  border-color: #da3633;
+  background: rgba(218, 54, 51, 0.1);
+}
+
+.sanction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sanction-name {
+  font-weight: 600;
+  color: #f0f6fc;
+}
+
+.world-reaction {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.world-reaction.supported {
+  background: #238636;
+  color: white;
+}
+
+.world-reaction.controversial {
+  background: #f0883e;
+  color: white;
+}
+
+.world-reaction.opposed {
+  background: #da3633;
+  color: white;
+}
+
+.sanction-desc {
+  color: #8b949e;
+  font-size: 0.9rem;
+  margin: 8px 0;
+}
+
+.sanction-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #6e7681;
+  margin-bottom: 12px;
+}
+
+.lift-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid #3fb950;
+  color: #3fb950;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lift-btn:hover {
+  background: #3fb950;
+  color: white;
+}
+
+.sanction-warning {
+  color: #da3633;
+  font-size: 0.85rem;
+  padding: 8px;
+  background: rgba(218, 54, 51, 0.15);
+  border-radius: 4px;
+}
+
+/* Supply Chain Tab */
+.supply-section {
+  margin-bottom: 24px;
+}
+
+.supply-section h4 {
+  margin: 0 0 16px 0;
+  color: #f0883e;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 8px;
+}
+
+.chain-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chain-card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.chain-card.disrupted {
+  border-color: #da3633;
+  background: rgba(218, 54, 51, 0.1);
+}
+
+.chain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.chain-type {
+  font-weight: 600;
+  color: #f0f6fc;
+  text-transform: capitalize;
+}
+
+.disrupted-badge {
+  background: #da3633;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.chain-deps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.chain-deps span:first-child {
+  color: #8b949e;
+  font-size: 0.85rem;
+}
+
+.dep-tag {
+  padding: 2px 8px;
+  background: #21262d;
+  border-radius: 12px;
+  border: 2px solid;
+  font-size: 0.8rem;
+}
+
+.chain-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chain-metric {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.chain-metric span:first-child {
+  color: #8b949e;
+  width: 100px;
+}
+
+.mini-bar {
+  flex: 1;
+  height: 6px;
+  background: #30363d;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mini-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.mini-fill.vulnerability {
+  background: linear-gradient(90deg, #f0883e, #da3633);
+}
+
+.impact-value {
+  color: #da3633;
+}
+
+.global-chains {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chain-mini {
+  display: grid;
+  grid-template-columns: 80px 1fr 80px;
+  padding: 8px 12px;
+  background: #161b22;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.chain-mini .faction-name {
+  color: #8b949e;
+}
+
+.chain-mini .chain-type {
+  text-transform: capitalize;
+  font-weight: normal;
+}
+
+.chain-status {
+  text-align: right;
+}
+
+.chain-status.green {
+  color: #3fb950;
+}
+
+.chain-status.red {
+  color: #da3633;
+}
+
+.supply-insight {
+  background: #161b22;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+}
+
+.supply-insight h4 {
+  margin: 0 0 8px 0;
+  color: #58a6ff;
+}
+
+.supply-insight p {
+  margin: 0;
+  color: #8b949e;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Mini Widget */
+.economics-mini {
+  background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.economics-mini:hover {
+  border-color: #58a6ff;
+  transform: translateY(-2px);
+}
+
+.economics-mini .mini-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.economics-mini .mini-title {
+  color: #58a6ff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.economics-mini .mini-expand {
+  color: #8b949e;
+}
+
+.economics-mini .mini-content {
+  display: flex;
+  justify-content: space-between;
+}
+
+.economics-mini .mini-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.economics-mini .mini-stat span:first-child {
+  color: #8b949e;
+  font-size: 0.7rem;
+}
+
+.economics-mini .stat-value {
+  color: #f0f6fc;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.economics-mini .mini-warning {
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: rgba(218, 54, 51, 0.2);
+  border: 1px solid #da3633;
+  border-radius: 4px;
+  color: #da3633;
+  font-size: 0.75rem;
+  text-align: center;
+  animation: pulse 1.5s infinite;
+}

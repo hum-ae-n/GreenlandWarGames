@@ -9,6 +9,7 @@ import {
   ACHIEVEMENTS,
 } from './drama';
 import { runAITurn, executeAIActions, AI_PROFILES } from './ai';
+import { applyEconomicEffects, EconomicState } from './economics';
 
 // Random events that can occur
 const RANDOM_EVENTS: GameEvent[] = [
@@ -200,7 +201,7 @@ export const applyEvent = (state: GameState, event: GameEvent): void => {
   }
 };
 
-export const advanceTurn = (state: GameState): void => {
+export const advanceTurn = (state: GameState, economicState?: EconomicState): void => {
   // Generate and apply events
   const events = generateTurnEvents(state);
   events.forEach(event => applyEvent(state, event));
@@ -320,6 +321,11 @@ export const advanceTurn = (state: GameState): void => {
     faction.resources.influencePoints = Math.min(200, faction.resources.influencePoints);
     faction.resources.economicOutput = Math.min(300, faction.resources.economicOutput);
   });
+
+  // Apply economic effects (trade deals, sanctions, supply chains)
+  if (economicState) {
+    applyEconomicEffects(state, economicState);
+  }
 
   // Calculate victory points
   Object.keys(state.factions).forEach(factionId => {
