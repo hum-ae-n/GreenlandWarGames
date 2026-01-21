@@ -370,7 +370,7 @@ GreenlandWarGames/
 │                                                                              │
 │                              * * *                                           │
 │                                                                              │
-│                      © 2025 Kaipability Ltd.                                 │
+│                      © 2026 Kaipability Ltd.                                 │
 │                        All Rights Reserved                                   │
 │                                                                              │
 │                         DEVELOPED BY                                         │
@@ -463,7 +463,7 @@ We welcome feedback and contributions for improvements!
 
 ## 📄 LICENSE
 
-© 2025 Kaipability Ltd. All Rights Reserved.
+© 2026 Kaipability Ltd. All Rights Reserved.
 
 This software is proprietary. Unauthorized copying, modification, distribution,
 or use of this software, via any medium, is strictly prohibited without express
