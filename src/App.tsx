@@ -23,6 +23,7 @@ import {
 } from './components/CrisisModal';
 import { Tutorial, HelpButton } from './components/Tutorial';
 import { PopupManager } from './components/LeaderPopup';
+import { Advisor, DiplomacyPanel } from './components/Advisor';
 import { LeaderId } from './components/PixelArt';
 import { getChiptuneEngine } from './audio/ChiptuneEngine';
 import './App.css';
@@ -506,6 +507,12 @@ function App() {
       <main className="game-main">
         <aside className="left-panel">
           <Dashboard gameState={gameState} />
+          <DiplomacyPanel
+            gameState={gameState}
+            onSelectLeader={(leaderId, _factionId) => {
+              setShowLeaderDialog({ leaderId, context: 'diplomatic' });
+            }}
+          />
         </aside>
 
         <section className="center-panel">
@@ -664,6 +671,12 @@ function App() {
 
       {/* Help Button */}
       <HelpButton onClick={() => setShowTutorial(true)} />
+
+      {/* Strategic Advisor */}
+      <Advisor
+        gameState={gameState}
+        selectedZone={selectedZone}
+      />
 
       {/* Random Leader Popups (Civ V Style) */}
       <PopupManager

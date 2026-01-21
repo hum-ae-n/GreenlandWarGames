@@ -211,45 +211,110 @@ export const ArcticMap: React.FC<ArcticMapProps> = ({
       ctx.fillStyle = fillColor;
       ctx.fill();
 
-      // Draw hex border
-      ctx.strokeStyle = zone.type === 'chokepoint' ? '#ffcc00' : '#3a6a9c';
-      ctx.lineWidth = zone.type === 'chokepoint' ? 2 : 1;
+      // Calculate threat level for this zone
+      let threatLevel = 0;
+      let threatColor = '#3a6a9c';
+      if (zone.controller && zone.controller !== gameState.playerFaction) {
+        // Check tension with controller
+        const rel = gameState.relations.find(r =>
+          r.factions.includes(gameState.playerFaction) && r.factions.includes(zone.controller!)
+        );
+        if (rel) {
+          switch (rel.tensionLevel) {
+            case 'conflict': threatLevel = 4; threatColor = '#ff0000'; break;
+            case 'crisis': threatLevel = 3; threatColor = '#ff4444'; break;
+            case 'confrontation': threatLevel = 2; threatColor = '#ff9800'; break;
+            case 'competition': threatLevel = 1; threatColor = '#f9a825'; break;
+            default: threatLevel = 0;
+          }
+        }
+      }
+
+      // Draw hex border (thicker for threatened zones)
+      const isChokepoint = zone.type === 'chokepoint';
+      ctx.strokeStyle = threatLevel > 0 ? threatColor : (isChokepoint ? '#ffcc00' : '#3a6a9c');
+      ctx.lineWidth = threatLevel > 2 ? 3 : (threatLevel > 0 ? 2 : (isChokepoint ? 2 : 1));
       ctx.stroke();
 
       // Draw zone name
       ctx.fillStyle = '#ffffff';
-      ctx.font = '10px monospace';
+      ctx.font = '9px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
       // Truncate long names
       let displayName = zone.name;
-      if (displayName.length > 12) {
-        displayName = displayName.substring(0, 10) + '..';
+      if (displayName.length > 10) {
+        displayName = displayName.substring(0, 8) + '..';
       }
-      ctx.fillText(displayName, center.x, center.y - 8);
+      ctx.fillText(displayName, center.x, center.y - 12);
 
-      // Draw resource indicators
+      // Draw faction flag (emoji) for controlled zones
+      if (zone.controller) {
+        const flagMap: Partial<Record<FactionId, string>> = {
+          usa: '🇺🇸',
+          russia: '🇷🇺',
+          china: '🇨🇳',
+          nato: '🏛️',
+          canada: '🇨🇦',
+          norway: '🇳🇴',
+          denmark: '🇩🇰',
+          indigenous: '🏔️',
+        };
+        const flag = flagMap[zone.controller];
+        if (flag) {
+          ctx.font = '14px serif';
+          ctx.fillText(flag, center.x, center.y + 2);
+        }
+      }
+
+      // Draw threat indicator (warning triangles)
+      if (threatLevel > 0) {
+        ctx.font = '10px serif';
+        const threatIcons = threatLevel >= 3 ? '⚠️' : (threatLevel >= 2 ? '⚡' : '•');
+        ctx.fillText(threatIcons, center.x + HEX_SIZE * 0.5, center.y - HEX_SIZE * 0.3);
+      }
+
+      // Draw resource indicators (smaller, at bottom)
       const totalResources = zone.resources.oil + zone.resources.gas + zone.resources.shipping;
       if (totalResources > 15) {
         ctx.fillStyle = '#ffcc00';
-        ctx.font = '8px monospace';
-        ctx.fillText('★★★', center.x, center.y + 8);
+        ctx.font = '7px monospace';
+        ctx.fillText('★★★', center.x, center.y + 14);
       } else if (totalResources > 10) {
         ctx.fillStyle = '#ffcc00';
-        ctx.fillText('★★', center.x, center.y + 8);
+        ctx.font = '7px monospace';
+        ctx.fillText('★★', center.x, center.y + 14);
       } else if (totalResources > 5) {
         ctx.fillStyle = '#ffcc00';
-        ctx.fillText('★', center.x, center.y + 8);
+        ctx.font = '7px monospace';
+        ctx.fillText('★', center.x, center.y + 14);
       }
 
       // Draw military presence indicator
       const playerPresence = zone.militaryPresence[gameState.playerFaction] || 0;
+      const enemyPresence = Object.entries(zone.militaryPresence)
+        .filter(([fid]) => fid !== gameState.playerFaction)
+        .reduce((sum, [, val]) => sum + val, 0);
+
       if (playerPresence > 0) {
         ctx.fillStyle = FACTIONS[gameState.playerFaction].color;
         ctx.beginPath();
-        ctx.arc(center.x + HEX_SIZE * 0.6, center.y - HEX_SIZE * 0.4, 5, 0, Math.PI * 2);
+        ctx.arc(center.x - HEX_SIZE * 0.5, center.y + HEX_SIZE * 0.3, 5, 0, Math.PI * 2);
         ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '7px monospace';
+        ctx.fillText(String(playerPresence), center.x - HEX_SIZE * 0.5, center.y + HEX_SIZE * 0.3 + 1);
+      }
+
+      if (enemyPresence > 0) {
+        ctx.fillStyle = '#ff4444';
+        ctx.beginPath();
+        ctx.arc(center.x + HEX_SIZE * 0.5, center.y + HEX_SIZE * 0.3, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = '7px monospace';
+        ctx.fillText(String(enemyPresence), center.x + HEX_SIZE * 0.5, center.y + HEX_SIZE * 0.3 + 1);
       }
     });
 
