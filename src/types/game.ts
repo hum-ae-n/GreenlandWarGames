@@ -200,6 +200,14 @@ export interface EconomicStateData {
   globalTradeIndex: number;
 }
 
+// Technology state
+export interface TechStateData {
+  researched: string[];
+  currentResearch: string | null;
+  researchProgress: number;
+  techPoints: number;
+}
+
 // Player reputation tracking
 export interface PlayerReputation {
   militarism: number;        // 0-100 - Are you aggressive or peaceful?

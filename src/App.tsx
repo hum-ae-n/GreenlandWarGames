@@ -28,6 +28,7 @@ import { LeaderId, PixelPortrait, LEADER_NAMES } from './components/PixelArt';
 import { ReputationMini, ReputationPanel } from './components/ReputationPanel';
 import { ObjectivesMini, ObjectivesPanel } from './components/ObjectivesPanel';
 import { EconomicsMini, EconomicsPanel } from './components/EconomicsPanel';
+import { TechMini, TechPanel } from './components/TechPanel';
 import { FACTIONS } from './data/factions';
 import { getChiptuneEngine } from './audio/ChiptuneEngine';
 import { DECISION_TEMPLATES, DecisionType } from './game/reputation';
@@ -37,6 +38,14 @@ import {
   TradeDeal,
   Sanction
 } from './game/economics';
+import {
+  createInitialTechState,
+  TechState,
+  startResearch,
+  processResearch,
+  cancelResearch,
+  applyTechEffects,
+} from './game/technology';
 import './App.css';
 
 type GameScreen = 'faction_select' | 'playing' | 'game_over';
@@ -70,9 +79,13 @@ function App() {
   const [showReputationPanel, setShowReputationPanel] = useState(false);
   const [showObjectivesPanel, setShowObjectivesPanel] = useState(false);
   const [showEconomicsPanel, setShowEconomicsPanel] = useState(false);
+  const [showTechPanel, setShowTechPanel] = useState(false);
 
   // Economic state
   const [economicState, setEconomicState] = useState<EconomicState | null>(null);
+
+  // Tech state
+  const [techState, setTechState] = useState<TechState | null>(null);
 
   // Handle window resize
   useEffect(() => {
@@ -159,6 +172,7 @@ function App() {
     const state = createInitialGameState(factionId);
     setGameState(state);
     setEconomicState(createInitialEconomicState());
+    setTechState(createInitialTechState());
     setScreen('playing');
 
     // Show tutorial for new players, then show greeting
@@ -567,8 +581,29 @@ function App() {
 
     const newState = JSON.parse(JSON.stringify(gameState));
     const newEconomicState = economicState ? JSON.parse(JSON.stringify(economicState)) : null;
+    const newTechState = techState ? JSON.parse(JSON.stringify(techState)) as TechState : null;
 
     advanceTurn(newState, newEconomicState);
+
+    // Process research progress
+    if (newTechState) {
+      const researchResult = processResearch(newState, newTechState);
+      if (researchResult.completed && researchResult.tech) {
+        // Research completed - show notification
+        newState.notifications.push({
+          id: `notif_tech_${Date.now()}`,
+          type: 'discovery',
+          title: `Research Complete: ${researchResult.tech.name}`,
+          description: researchResult.tech.description,
+          timestamp: Date.now(),
+        });
+        getChiptuneEngine().playSfx('success');
+      }
+      // Apply tech effects each turn
+      applyTechEffects(newState, newTechState);
+      setTechState(newTechState);
+    }
+
     setGameState(newState);
     if (newEconomicState) {
       setEconomicState(newEconomicState);
@@ -579,7 +614,7 @@ function App() {
     if (newState.gameOver) {
       setScreen('game_over');
     }
-  }, [gameState, economicState]);
+  }, [gameState, economicState, techState]);
 
   // Economic handlers
   const handleDealCreated = useCallback((deal: TradeDeal) => {
@@ -687,9 +722,39 @@ function App() {
     getChiptuneEngine().playSfx('success');
   }, [economicState, gameState]);
 
+  // Tech handlers
+  const handleStartResearch = useCallback((techId: string) => {
+    if (!techState || !gameState) return;
+
+    const newTechState = JSON.parse(JSON.stringify(techState)) as TechState;
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+
+    const result = startResearch(newState, newTechState, techId);
+    if (result.success) {
+      setTechState(newTechState);
+      setGameState(newState);
+      getChiptuneEngine().playSfx('action');
+    }
+  }, [techState, gameState]);
+
+  const handleCancelResearch = useCallback(() => {
+    if (!techState || !gameState) return;
+
+    const newTechState = JSON.parse(JSON.stringify(techState)) as TechState;
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+
+    const result = cancelResearch(newState, newTechState);
+    if (result.success) {
+      setTechState(newTechState);
+      setGameState(newState);
+      getChiptuneEngine().playSfx('click');
+    }
+  }, [techState, gameState]);
+
   const handleRestart = useCallback(() => {
     setGameState(null);
     setEconomicState(null);
+    setTechState(null);
     setSelectedZone(null);
     setScreen('faction_select');
     getChiptuneEngine().stop();
@@ -762,6 +827,12 @@ function App() {
               state={gameState}
               economicState={economicState}
               onClick={() => setShowEconomicsPanel(true)}
+            />
+          )}
+          {techState && (
+            <TechMini
+              techState={techState}
+              onClick={() => setShowTechPanel(true)}
             />
           )}
           <DiplomacyPanel
@@ -985,6 +1056,21 @@ function App() {
               onDealCanceled={handleDealCanceled}
               onSanctionLifted={handleSanctionLifted}
               onClose={() => setShowEconomicsPanel(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Tech Panel Modal */}
+      {showTechPanel && techState && (
+        <div className="modal-overlay" onClick={() => setShowTechPanel(false)}>
+          <div className="modal-content panel-modal tech-modal" onClick={e => e.stopPropagation()}>
+            <TechPanel
+              state={gameState}
+              techState={techState}
+              onStartResearch={handleStartResearch}
+              onCancelResearch={handleCancelResearch}
+              onClose={() => setShowTechPanel(false)}
             />
           </div>
         </div>
