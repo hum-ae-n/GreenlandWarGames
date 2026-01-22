@@ -280,8 +280,7 @@ body {
 .action-bar-content {
   display: flex;
   gap: 1rem;
-  max-height: 180px;
-  overflow-y: auto;
+  width: 100%;
 }
 
 .action-bar-content > * {
@@ -289,68 +288,62 @@ body {
   min-width: 0;
 }
 
-.action-bar-actions {
-  flex: 2;
-}
-
-/* Compact styles for action panel when in top bar */
-.top-action-bar .action-panel {
-  padding: 0;
-  background: transparent;
-}
-
-.top-action-bar .action-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-.top-action-bar .action-btn {
-  padding: 0.35rem 0.5rem;
-  font-size: 0.65rem;
-}
-
-/* Compact zone detail in action bar */
-.top-action-bar .zone-detail {
-  padding: 0;
-  background: transparent;
-  max-width: 300px;
-}
-
-.top-action-bar .zone-detail h3 {
-  display: none; /* Already shown in header */
-}
-
-/* Map container adjusts when action bar is shown */
-.map-container.with-action-bar {
-  margin-top: 120px;
-}
-
-/* Zone detail in top bar - horizontal layout */
+/* Zone detail in top bar - full width horizontal layout */
 .top-action-bar .zone-detail {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  align-items: center;
+  align-items: flex-start;
   padding: 0;
   background: transparent;
-  border: none;
+  width: 100%;
+  max-width: none;
 }
 
-.top-action-bar .zone-detail h3 {
-  display: none;
+.top-action-bar .zone-detail .zone-header {
+  display: none; /* Already shown in action-bar-header */
 }
 
-.top-action-bar .zone-resources,
-.top-action-bar .zone-actions {
+.top-action-bar .zone-detail .zone-controller,
+.top-action-bar .zone-detail .zone-unclaimed {
+  display: none; /* Already shown in action-bar-header */
+}
+
+.top-action-bar .zone-detail .zone-resources-compact {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-.top-action-bar .zone-stat {
-  padding: 0.25rem 0.5rem;
+.top-action-bar .zone-detail .zone-actions {
+  flex: 1;
+  min-width: 200px;
+}
+
+.top-action-bar .zone-detail .zone-actions h4 {
   font-size: 0.7rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.top-action-bar .zone-detail .action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.top-action-bar .zone-detail .action-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
+}
+
+.top-action-bar .zone-detail .zone-strategic {
+  margin-left: auto;
+}
+
+/* Map container adjusts when action bar is shown */
+.map-container.with-action-bar {
+  margin-top: 140px;
 }
 
 .map-container {
