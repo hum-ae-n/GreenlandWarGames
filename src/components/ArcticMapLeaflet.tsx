@@ -1,8 +1,43 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, Component, ErrorInfo, ReactNode } from 'react';
 import { MapContainer, TileLayer, Polygon, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 // CSS is imported globally in main.tsx to prevent mount/unmount issues
 import { GameState, MapZone, FactionId } from '../types/game';
+
+// Error boundary to catch Leaflet initialization failures
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback: ReactNode;
+  onError?: (error: Error) => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class MapErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Leaflet Map Error:', error, errorInfo);
+    this.props.onError?.(error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 interface ArcticMapLeafletProps {
   gameState: GameState;
@@ -260,6 +295,129 @@ const ZonePolygon: React.FC<{
   );
 };
 
+// Loading spinner component
+const LoadingOverlay: React.FC<{ message?: string }> = ({ message = 'Loading World Map...' }) => (
+  <div style={{
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0a1628',
+    color: '#88ccff',
+    fontFamily: 'monospace',
+    zIndex: 1000,
+  }}>
+    <div style={{
+      width: '40px',
+      height: '40px',
+      border: '3px solid #1a3a5c',
+      borderTop: '3px solid #88ccff',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite',
+    }} />
+    <div style={{ marginTop: '16px', fontSize: '12px' }}>{message}</div>
+    <style>{`
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `}</style>
+  </div>
+);
+
+// Error fallback component
+const ErrorFallback: React.FC<{ error?: Error | null; onRetry?: () => void }> = ({ error, onRetry }) => (
+  <div style={{
+    width: '100%',
+    height: '100%',
+    minHeight: '400px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0a1628',
+    color: '#ff6b6b',
+    fontFamily: 'monospace',
+    padding: '20px',
+    textAlign: 'center',
+  }}>
+    <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+    <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>
+      World Map Failed to Load
+    </div>
+    <div style={{ fontSize: '11px', color: '#888', marginBottom: '16px', maxWidth: '300px' }}>
+      {error?.message || 'The map tiles could not be loaded. Try switching to 2D mode.'}
+    </div>
+    {onRetry && (
+      <button
+        onClick={onRetry}
+        style={{
+          padding: '8px 16px',
+          background: '#1a3a5c',
+          border: '1px solid #3b82f6',
+          color: '#88ccff',
+          fontFamily: 'monospace',
+          fontSize: '11px',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }}
+      >
+        Retry
+      </button>
+    )}
+  </div>
+);
+
+// Inner map component that handles the actual Leaflet rendering
+const LeafletMapInner: React.FC<ArcticMapLeafletProps & { onLoad: () => void }> = ({
+  gameState,
+  selectedZone,
+  onZoneSelect,
+  width,
+  height,
+  onLoad,
+}) => {
+  const arcticCenter: [number, number] = [75, 0];
+  const defaultZoom = 2;
+
+  return (
+    <MapContainer
+      center={arcticCenter}
+      zoom={defaultZoom}
+      style={{ width: '100%', height: '100%' }}
+      minZoom={1}
+      maxZoom={6}
+      maxBounds={[[50, -180], [90, 180]]}
+      maxBoundsViscosity={0.8}
+      whenReady={onLoad}
+    >
+      <MapResizer width={width} height={height} />
+
+      {/* Dark themed tile layer - CartoDB Dark Matter */}
+      <TileLayer
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      />
+
+      {/* Zone polygons */}
+      {Object.entries(gameState.zones).map(([zoneId, zone]) => (
+        <ZonePolygon
+          key={zoneId}
+          zone={zone}
+          isSelected={selectedZone === zoneId}
+          isPlayerZone={zone.controller === gameState.playerFaction}
+          onSelect={() => onZoneSelect(selectedZone === zoneId ? null : zoneId)}
+        />
+      ))}
+    </MapContainer>
+  );
+};
+
 export const ArcticMapLeaflet: React.FC<ArcticMapLeafletProps> = ({
   gameState,
   selectedZone,
@@ -267,13 +425,38 @@ export const ArcticMapLeaflet: React.FC<ArcticMapLeafletProps> = ({
   width,
   height,
 }) => {
-  // Arctic-centered view
-  const arcticCenter: [number, number] = [75, 0];
-  const defaultZoom = 2;
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorInfo, setErrorInfo] = useState<Error | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Use explicit pixel dimensions to ensure Leaflet initializes correctly
   const containerHeight = height > 0 ? height : 500;
   const containerWidth = width > 0 ? width : '100%';
+
+  const handleLoad = () => {
+    setIsLoading(false);
+  };
+
+  const handleError = (error: Error) => {
+    setErrorInfo(error);
+    setIsLoading(false);
+  };
+
+  const handleRetry = () => {
+    setErrorInfo(null);
+    setIsLoading(true);
+    setRetryCount(prev => prev + 1);
+  };
+
+  // Auto-hide loading after timeout (fallback)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        setIsLoading(false);
+      }
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [isLoading, retryCount]);
 
   return (
     <div style={{
@@ -283,35 +466,24 @@ export const ArcticMapLeaflet: React.FC<ArcticMapLeafletProps> = ({
       borderRadius: '8px',
       overflow: 'hidden',
       background: '#0a1628',
+      position: 'relative',
     }}>
-      <MapContainer
-        center={arcticCenter}
-        zoom={defaultZoom}
-        style={{ width: '100%', height: '100%' }}
-        minZoom={1}
-        maxZoom={6}
-        maxBounds={[[50, -180], [90, 180]]}
-        maxBoundsViscosity={0.8}
+      <MapErrorBoundary
+        fallback={<ErrorFallback error={errorInfo} onRetry={handleRetry} />}
+        onError={handleError}
+        key={retryCount}
       >
-        <MapResizer width={width} height={height} />
-
-        {/* Dark themed tile layer - CartoDB Dark Matter */}
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        <LeafletMapInner
+          gameState={gameState}
+          selectedZone={selectedZone}
+          onZoneSelect={onZoneSelect}
+          width={width}
+          height={height}
+          onLoad={handleLoad}
         />
+      </MapErrorBoundary>
 
-        {/* Zone polygons */}
-        {Object.entries(gameState.zones).map(([zoneId, zone]) => (
-          <ZonePolygon
-            key={zoneId}
-            zone={zone}
-            isSelected={selectedZone === zoneId}
-            isPlayerZone={zone.controller === gameState.playerFaction}
-            onSelect={() => onZoneSelect(selectedZone === zoneId ? null : zoneId)}
-          />
-        ))}
-      </MapContainer>
+      {isLoading && <LoadingOverlay />}
 
       {/* Custom styles for tooltips */}
       <style>{`

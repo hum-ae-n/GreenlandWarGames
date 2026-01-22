@@ -1039,7 +1039,7 @@ function App() {
         </aside>
 
         <section className="center-panel">
-          <div className="map-mode-toggle">
+          <div className="map-mode-toggle" style={{ zIndex: 100 }}>
             <button
               className={`map-mode-btn ${mapMode === 'world' ? 'active' : ''}`}
               onClick={() => setMapMode('world')}
@@ -1063,24 +1063,29 @@ function App() {
             </button>
           </div>
           <div className="map-container">
-            {mapMode === 'world' ? (
+            {mapMode === 'world' && (
               <ArcticMapLeaflet
+                key="leaflet-map"
                 gameState={gameState}
                 selectedZone={selectedZone}
                 onZoneSelect={setSelectedZone}
                 width={mapSize.width}
                 height={mapSize.height}
               />
-            ) : mapMode === '2d' ? (
+            )}
+            {mapMode === '2d' && (
               <ArcticMap
+                key="2d-map"
                 gameState={gameState}
                 selectedZone={selectedZone}
                 onZoneSelect={setSelectedZone}
                 width={mapSize.width}
                 height={mapSize.height}
               />
-            ) : (
+            )}
+            {mapMode === '3d' && (
               <ArcticMap3D
+                key="3d-map"
                 gameState={gameState}
                 selectedZone={selectedZone}
                 onZoneSelect={setSelectedZone}
