@@ -199,20 +199,27 @@ const MapResizer: React.FC<{ width: number; height: number }> = ({ width, height
 
   // Force map to recalculate on mount - critical for Netlify
   useEffect(() => {
+    if (!map) return;
+
     // Multiple invalidations to ensure proper rendering
     const timers = [
-      setTimeout(() => map.invalidateSize(), 0),
-      setTimeout(() => map.invalidateSize(), 100),
-      setTimeout(() => map.invalidateSize(), 300),
+      setTimeout(() => { try { map.invalidateSize(); } catch (e) { console.warn('Map resize error:', e); } }, 0),
+      setTimeout(() => { try { map.invalidateSize(); } catch (e) { console.warn('Map resize error:', e); } }, 100),
+      setTimeout(() => { try { map.invalidateSize(); } catch (e) { console.warn('Map resize error:', e); } }, 300),
     ];
     return () => timers.forEach(t => clearTimeout(t));
   }, [map]);
 
   useEffect(() => {
+    if (!map) return;
     if (prevSize.current.width !== width || prevSize.current.height !== height) {
       // Debounce resize to avoid excessive redraws
       const timer = setTimeout(() => {
-        map.invalidateSize();
+        try {
+          map.invalidateSize();
+        } catch (e) {
+          console.warn('Map resize error:', e);
+        }
         prevSize.current = { width, height };
       }, 100);
       return () => clearTimeout(timer);
@@ -252,7 +259,10 @@ const ZonePolygon: React.FC<{
       }}
       eventHandlers={{
         click: (e) => {
-          L.DomEvent.stopPropagation(e);
+          // Stop propagation using native event (react-leaflet v5 compatible)
+          if (e.originalEvent) {
+            e.originalEvent.stopPropagation();
+          }
           onSelect();
         },
       }}
@@ -389,13 +399,17 @@ const LeafletMapInner: React.FC<ArcticMapLeafletProps & { onLoad: () => void; on
 
   // Check if we're in a browser environment
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      onError(new Error('Window is not defined'));
-      return;
-    }
-    // Check if Leaflet loaded correctly
-    if (!L || !L.map) {
-      onError(new Error('Leaflet library failed to load'));
+    try {
+      if (typeof window === 'undefined') {
+        onError(new Error('Window is not defined'));
+        return;
+      }
+      // Check if Leaflet loaded correctly
+      if (typeof L === 'undefined') {
+        onError(new Error('Leaflet library failed to load'));
+      }
+    } catch (e) {
+      onError(e instanceof Error ? e : new Error('Unknown error checking environment'));
     }
   }, [onError]);
 
