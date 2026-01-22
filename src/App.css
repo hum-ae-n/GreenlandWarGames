@@ -202,11 +202,16 @@ body {
    TOP ACTION BAR - Shows when zone is selected
    ============================================================================ */
 .top-action-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-panel) 100%);
   border-bottom: 2px solid var(--accent-blue);
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
   animation: slideDown 0.2s ease-out;
-  z-index: 10;
+  z-index: 60;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes slideDown {
@@ -318,7 +323,34 @@ body {
 
 /* Map container adjusts when action bar is shown */
 .map-container.with-action-bar {
-  flex: 1;
+  margin-top: 120px;
+}
+
+/* Zone detail in top bar - horizontal layout */
+.top-action-bar .zone-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.top-action-bar .zone-detail h3 {
+  display: none;
+}
+
+.top-action-bar .zone-resources,
+.top-action-bar .zone-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.top-action-bar .zone-stat {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
 }
 
 .map-container {
