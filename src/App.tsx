@@ -16,29 +16,103 @@ const ArcticMapLeaflet = lazy(() => import('./components/ArcticMapLeaflet'));
 interface MapErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 class MapErrorBoundary extends Component<
-  { children: ReactNode; fallback: ReactNode; onError?: () => void },
+  { children: ReactNode; onError?: (error: Error, errorInfo: ErrorInfo) => void; onSwitch2D?: () => void },
   MapErrorBoundaryState
 > {
-  constructor(props: { children: ReactNode; fallback: ReactNode; onError?: () => void }) {
+  constructor(props: { children: ReactNode; onError?: (error: Error, errorInfo: ErrorInfo) => void; onSwitch2D?: () => void }) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error: Error): MapErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): Partial<MapErrorBoundaryState> {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Map component error:', error, errorInfo);
-    this.props.onError?.();
+    this.setState({ errorInfo });
+    this.props.onError?.(error, errorInfo);
   }
+
+  handleCopyDebug = () => {
+    const { error, errorInfo } = this.state;
+    const debugInfo = `
+=== LEAFLET MAP ERROR DEBUG ===
+Error: ${error?.message || 'Unknown'}
+Stack: ${error?.stack || 'No stack trace'}
+
+Component Stack: ${errorInfo?.componentStack || 'No component stack'}
+
+User Agent: ${navigator.userAgent}
+URL: ${window.location.href}
+Time: ${new Date().toISOString()}
+===========================
+    `.trim();
+
+    navigator.clipboard.writeText(debugInfo).then(() => {
+      alert('Debug info copied to clipboard!');
+    }).catch(() => {
+      console.log(debugInfo);
+      alert('Could not copy. Check console for debug info.');
+    });
+  };
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback;
+      return (
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#0a1628',
+          color: '#ff6b6b',
+          fontFamily: 'monospace',
+          padding: '20px',
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+          <div style={{ fontSize: '14px', marginBottom: '8px' }}>World Map Failed to Load</div>
+          <div style={{ fontSize: '11px', color: '#888', marginBottom: '16px', maxWidth: '400px', textAlign: 'center' }}>
+            {this.state.error?.message || 'Unknown error'}
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={this.props.onSwitch2D}
+              style={{
+                padding: '8px 16px',
+                background: '#3b82f6',
+                border: 'none',
+                color: 'white',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontFamily: 'monospace',
+              }}
+            >
+              Switch to 2D Map
+            </button>
+            <button
+              onClick={this.handleCopyDebug}
+              style={{
+                padding: '8px 16px',
+                background: '#6b7280',
+                border: 'none',
+                color: 'white',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontFamily: 'monospace',
+              }}
+            >
+              Copy Debug Info
+            </button>
+          </div>
+        </div>
+      );
     }
     return this.props.children;
   }
@@ -1123,37 +1197,8 @@ function App() {
           <div className={`map-container ${selectedZone ? 'with-action-bar' : ''}`}>
             {mapMode === 'world' && (
               <MapErrorBoundary
-                fallback={
-                  <div style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: '#0a1628',
-                    color: '#ff6b6b',
-                    fontFamily: 'monospace',
-                  }}>
-                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-                    <div style={{ fontSize: '14px', marginBottom: '8px' }}>World Map Failed to Load</div>
-                    <button
-                      onClick={() => setMapMode('2d')}
-                      style={{
-                        padding: '8px 16px',
-                        background: '#3b82f6',
-                        border: 'none',
-                        color: 'white',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontFamily: 'monospace',
-                      }}
-                    >
-                      Switch to 2D Map
-                    </button>
-                  </div>
-                }
-                onError={() => console.error('Leaflet map crashed')}
+                onSwitch2D={() => setMapMode('2d')}
+                onError={(error, errorInfo) => console.error('Leaflet map crashed:', error, errorInfo)}
               >
                 <Suspense fallback={
                   <div style={{
