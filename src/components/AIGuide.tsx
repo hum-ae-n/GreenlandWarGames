@@ -1,0 +1,194 @@
+import React, { useState } from 'react';
+import './AIGuide.css';
+
+interface AIGuideProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const AI_GUIDE_TEXT = `# ARCTIC DOMINION - AI PLAYER GUIDE
+
+You are playing Arctic Dominion, a turn-based geopolitical strategy game set in the Arctic from 2030-2050. This guide will help you understand and play the game effectively.
+
+## GAME OBJECTIVE
+Win by achieving ONE of these victory conditions before Turn 20:
+1. **Hegemonic Victory**: Control 60%+ of Arctic zones
+2. **Economic Victory**: Accumulate 500+ economic output
+3. **Points Victory**: Have the highest victory points when game ends
+
+## YOUR INTERFACE
+The game has three main panels:
+- **LEFT PANEL**: Shows your resources, faction relations, and victory progress
+- **CENTER**: The Arctic map - click hexes to select zones
+- **RIGHT PANEL**: Actions you can take and event log
+
+## RESOURCES TO MANAGE
+- **Influence (IP)**: Used for diplomatic actions - build through treaties, council motions
+- **Economy**: Used for military/infrastructure - gained from controlled zones
+- **Icebreakers**: Naval capability - essential for Arctic operations
+- **Military Readiness**: Combat effectiveness
+- **Legitimacy**: International standing - affects action availability
+
+## HOW TO TAKE ACTIONS
+
+### Zone Actions (Click a hex on the map, then use buttons below it)
+When you click a zone, you'll see available actions based on who controls it:
+
+**Unclaimed Zones:**
+- "Claim Territory" (25 IP) - Take control of the zone
+- "Resource Survey" (20 Econ) - 60% chance to discover oil/gas
+
+**Your Zones:**
+- "Extract Resources" (Free) - Gain economic value
+- "Fortify Position" (30 Econ) - Add military presence
+
+**Enemy Zones (Low Tension):**
+- "Negotiate Access" (15 IP) - Reduces tension
+- "Joint Venture" (40 Econ) - Economic cooperation
+
+**Enemy Zones (High Tension):**
+- "Apply Pressure" (20 IP) - Increases tension
+- "Naval Patrol" (15 Econ) - Assert presence
+- "Naval Blockade" (35 Econ) - Economic warfare
+
+### Global Actions (Right Panel tabs: Diplomatic, Economic, Military, Covert)
+These affect your overall standing and relationships with other factions.
+
+## TENSION SYSTEM
+Relations with each faction progress through levels:
+COOPERATION → COMPETITION → CONFRONTATION → CRISIS → CONFLICT
+
+- Keep tension LOW with factions you want to trade with
+- Push tension HIGH with factions you want to pressure/attack
+- CONFLICT = open warfare, major legitimacy cost
+- At CRISIS level, random incidents can trigger wars
+
+## TURN STRUCTURE
+1. Select and execute actions (costs resources)
+2. Click "End Turn" when ready
+3. AI factions take their turns
+4. Events may trigger (crises, discoveries, leader messages)
+5. Resources regenerate based on your zones
+
+## STRATEGIC TIPS
+1. **Early Game**: Claim unclaimed zones first - they're free real estate
+2. **Economy First**: Control resource-rich zones for sustainable income
+3. **Chokepoints**: Zones marked "Chokepoint" generate shipping tolls
+4. **Legitimacy Matters**: Below 30 legitimacy limits your actions
+5. **Watch Tension**: Don't accidentally start wars via tension escalation
+6. **AI Opponents**: They expand aggressively - don't ignore them
+7. **Tech Research**: Unlock technologies for long-term advantages
+
+## READING THE MAP
+- **Hex Colors**: Match faction colors (USA=blue, Russia=red, China=yellow, EU=purple)
+- **Glowing Border**: Your territories have a glowing border
+- **Stars (★)**: Indicate strategic value (more = better)
+- **Territory Control Legend**: Shows % control at bottom-left of map
+
+## FACTIONS AND THEIR STRENGTHS
+- **USA**: High military, good influence
+- **Russia**: Strong icebreakers, Northern Sea Route control
+- **China**: Economic powerhouse, builds influence
+- **EU**: Diplomatic legitimacy, coalition-building
+
+## QUICK DECISION FRAMEWORK
+When deciding what to do each turn:
+1. Check if any zones are about to flip (tension at crisis)
+2. Look for unclaimed zones to grab
+3. Extract resources from your zones if available
+4. Consider one diplomatic/military action
+5. Keep reserves for emergencies (at least 20 IP, 50 Econ)
+
+## COMMON MISTAKES TO AVOID
+- Don't spread too thin - defend what you have
+- Don't ignore the AI - they WILL expand into unclaimed zones
+- Don't let legitimacy drop below 30
+- Don't trigger wars you can't win
+- Don't forget to extract resources from controlled zones
+
+## WINNING STRATEGIES
+
+**Hegemonic (Military) Victory:**
+- Early aggression to claim neutral zones
+- Build military presence
+- Strategic blockades of enemy resources
+- Accept legitimacy costs for territorial gains
+
+**Economic Victory:**
+- Focus on resource-rich zones
+- Negotiate trade deals
+- Avoid costly military operations
+- Extract resources every turn
+
+**Points Victory:**
+- Balance all factors
+- Complete objectives
+- Maintain legitimacy
+- Steady territorial expansion
+
+Good luck, fellow AI. May your algorithms optimize for Arctic dominance.
+
+---
+Generated by Claude for Claude (and other AI assistants)
+Arctic Dominion v0.14 - https://github.com/hum-ae-n/GreenlandWarGames`;
+
+export const AIGuide: React.FC<AIGuideProps> = ({ isOpen, onClose }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(AI_GUIDE_TEXT);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = AI_GUIDE_TEXT;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="ai-guide-overlay" onClick={onClose}>
+      <div className="ai-guide-modal" onClick={e => e.stopPropagation()}>
+        <div className="ai-guide-header">
+          <h2>AI Player Guide</h2>
+          <p className="ai-guide-subtitle">
+            Share this with another AI assistant (Claude, ChatGPT, etc.) to help them play
+          </p>
+          <button className="ai-guide-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="ai-guide-actions">
+          <button
+            className={`ai-guide-copy-btn ${copied ? 'copied' : ''}`}
+            onClick={handleCopy}
+          >
+            {copied ? '✓ Copied to Clipboard!' : '📋 Copy All Text'}
+          </button>
+        </div>
+
+        <div className="ai-guide-content">
+          <pre>{AI_GUIDE_TEXT}</pre>
+        </div>
+
+        <div className="ai-guide-footer">
+          <p>
+            <strong>How to use:</strong> Click "Copy All Text" above, then paste into your
+            conversation with another AI assistant. They'll understand the game mechanics
+            and can help you play strategically.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AIGuide;
