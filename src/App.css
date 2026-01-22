@@ -198,6 +198,129 @@ body {
   color: white;
 }
 
+/* ============================================================================
+   TOP ACTION BAR - Shows when zone is selected
+   ============================================================================ */
+.top-action-bar {
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-panel) 100%);
+  border-bottom: 2px solid var(--accent-blue);
+  padding: 0.5rem;
+  animation: slideDown 0.2s ease-out;
+  z-index: 10;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.action-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.selected-zone-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.selected-zone-info .zone-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.selected-zone-info .zone-controller {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.close-action-bar {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.close-action-bar:hover {
+  background: var(--accent-red);
+  border-color: var(--accent-red);
+  color: white;
+}
+
+.action-bar-content {
+  display: flex;
+  gap: 1rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.action-bar-content > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.action-bar-actions {
+  flex: 2;
+}
+
+/* Compact styles for action panel when in top bar */
+.top-action-bar .action-panel {
+  padding: 0;
+  background: transparent;
+}
+
+.top-action-bar .action-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.top-action-bar .action-btn {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.65rem;
+}
+
+/* Compact zone detail in action bar */
+.top-action-bar .zone-detail {
+  padding: 0;
+  background: transparent;
+  max-width: 300px;
+}
+
+.top-action-bar .zone-detail h3 {
+  display: none; /* Already shown in header */
+}
+
+/* Map container adjusts when action bar is shown */
+.map-container.with-action-bar {
+  flex: 1;
+}
+
 .map-container {
   flex: 1;
   display: flex;

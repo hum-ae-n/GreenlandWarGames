@@ -1073,6 +1073,38 @@ function App() {
         </aside>
 
         <section className="center-panel">
+          {/* Action Bar - shows at top when zone is selected */}
+          {selectedZoneData && (
+            <div className="top-action-bar">
+              <div className="action-bar-header">
+                <div className="selected-zone-info">
+                  <span className="zone-name">{selectedZoneData.name}</span>
+                  <span className="zone-controller">
+                    {selectedZoneData.controller?.toUpperCase() || 'UNCLAIMED'}
+                  </span>
+                </div>
+                <button
+                  className="close-action-bar"
+                  onClick={() => setSelectedZone(null)}
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="action-bar-content">
+                <ZoneDetail zone={selectedZoneData} gameState={gameState} onAction={handleZoneAction} />
+                <div className="action-bar-actions">
+                  <ActionPanel
+                    gameState={gameState}
+                    selectedZone={selectedZone}
+                    onExecuteAction={handleExecuteAction}
+                    onEndTurn={handleEndTurn}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="map-mode-toggle" style={{ zIndex: 100 }}>
             <button
               className={`map-mode-btn ${mapMode === 'world' ? 'active' : ''}`}
@@ -1096,7 +1128,7 @@ function App() {
               3D
             </button>
           </div>
-          <div className="map-container">
+          <div className={`map-container ${selectedZone ? 'with-action-bar' : ''}`}>
             {mapMode === 'world' && (
               <MapErrorBoundary
                 fallback={
@@ -1187,9 +1219,6 @@ function App() {
               />
             )}
           </div>
-          {selectedZoneData && (
-            <ZoneDetail zone={selectedZoneData} gameState={gameState} onAction={handleZoneAction} />
-          )}
         </section>
 
         <aside className="right-panel">
@@ -1198,7 +1227,7 @@ function App() {
               className={`panel-tab ${rightPanelMode === 'actions' ? 'active' : ''}`}
               onClick={() => setRightPanelMode('actions')}
             >
-              Actions
+              Events
             </button>
             <button
               className={`panel-tab ${rightPanelMode === 'military' ? 'active' : ''}`}
@@ -1209,15 +1238,7 @@ function App() {
           </div>
 
           {rightPanelMode === 'actions' ? (
-            <>
-              <ActionPanel
-                gameState={gameState}
-                selectedZone={selectedZone}
-                onExecuteAction={handleExecuteAction}
-                onEndTurn={handleEndTurn}
-              />
-              <EventLog gameState={gameState} />
-            </>
+            <EventLog gameState={gameState} />
           ) : (
             <MilitaryPanel
               gameState={gameState}
