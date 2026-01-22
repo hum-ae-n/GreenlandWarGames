@@ -977,7 +977,7 @@ function App() {
       <header className="game-header">
         <div className="header-player">
           <div className="player-portrait">
-            <PixelPortrait leader={playerLeader} size={48} />
+            <PixelPortrait leader={playerLeader} size={32} />
           </div>
           <div className="player-info">
             <span className="player-faction" style={{ color: playerFactionData.color }}>
