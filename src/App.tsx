@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, lazy, Suspense, Component, ReactNode, ErrorInfo } from 'react';
 import { GameState, FactionId, GameAction, CombatResultState } from './types/game';
 import { createInitialGameState, updateTension } from './game/state';
 import { executeAction } from './game/actions';
@@ -8,7 +8,41 @@ import { getLeaderForFaction } from './game/leaders';
 import { ACHIEVEMENTS, CrisisChoice } from './game/drama';
 import { ArcticMap, ZoneDetail } from './components/ArcticMap';
 import { ArcticMap3D } from './components/ArcticMap3D';
-import { ArcticMapLeaflet } from './components/ArcticMapLeaflet';
+
+// Lazy load Leaflet to isolate any initialization errors
+const ArcticMapLeaflet = lazy(() => import('./components/ArcticMapLeaflet'));
+
+// Error boundary for map components
+interface MapErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class MapErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode; onError?: () => void },
+  MapErrorBoundaryState
+> {
+  constructor(props: { children: ReactNode; fallback: ReactNode; onError?: () => void }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): MapErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Map component error:', error, errorInfo);
+    this.props.onError?.();
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 import { Dashboard, EventLog } from './components/Dashboard';
 import { ActionPanel } from './components/ActionPanel';
 import { FactionSelect } from './components/FactionSelect';
@@ -1064,14 +1098,73 @@ function App() {
           </div>
           <div className="map-container">
             {mapMode === 'world' && (
-              <ArcticMapLeaflet
-                key="leaflet-map"
-                gameState={gameState}
-                selectedZone={selectedZone}
-                onZoneSelect={setSelectedZone}
-                width={mapSize.width}
-                height={mapSize.height}
-              />
+              <MapErrorBoundary
+                fallback={
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#0a1628',
+                    color: '#ff6b6b',
+                    fontFamily: 'monospace',
+                  }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+                    <div style={{ fontSize: '14px', marginBottom: '8px' }}>World Map Failed to Load</div>
+                    <button
+                      onClick={() => setMapMode('2d')}
+                      style={{
+                        padding: '8px 16px',
+                        background: '#3b82f6',
+                        border: 'none',
+                        color: 'white',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      Switch to 2D Map
+                    </button>
+                  </div>
+                }
+                onError={() => console.error('Leaflet map crashed')}
+              >
+                <Suspense fallback={
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#0a1628',
+                    color: '#88ccff',
+                    fontFamily: 'monospace',
+                  }}>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      border: '3px solid #1a3a5c',
+                      borderTop: '3px solid #88ccff',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite',
+                    }} />
+                    <div style={{ marginTop: '16px' }}>Loading World Map...</div>
+                    <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                  </div>
+                }>
+                  <ArcticMapLeaflet
+                    key="leaflet-map"
+                    gameState={gameState}
+                    selectedZone={selectedZone}
+                    onZoneSelect={setSelectedZone}
+                    width={mapSize.width}
+                    height={mapSize.height}
+                  />
+                </Suspense>
+              </MapErrorBoundary>
             )}
             {mapMode === '2d' && (
               <ArcticMap

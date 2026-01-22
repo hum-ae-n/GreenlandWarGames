@@ -374,16 +374,38 @@ const ErrorFallback: React.FC<{ error?: Error | null; onRetry?: () => void }> = 
 );
 
 // Inner map component that handles the actual Leaflet rendering
-const LeafletMapInner: React.FC<ArcticMapLeafletProps & { onLoad: () => void }> = ({
+const LeafletMapInner: React.FC<ArcticMapLeafletProps & { onLoad: () => void; onError: (e: Error) => void }> = ({
   gameState,
   selectedZone,
   onZoneSelect,
   width,
   height,
   onLoad,
+  onError,
 }) => {
   const arcticCenter: [number, number] = [75, 0];
   const defaultZoom = 2;
+  const [mapReady, setMapReady] = useState(false);
+
+  // Check if we're in a browser environment
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      onError(new Error('Window is not defined'));
+      return;
+    }
+    // Check if Leaflet loaded correctly
+    if (!L || !L.map) {
+      onError(new Error('Leaflet library failed to load'));
+    }
+  }, [onError]);
+
+  const handleMapReady = () => {
+    setMapReady(true);
+    onLoad();
+  };
+
+  // Defensive check for zones
+  const zones = gameState?.zones || {};
 
   return (
     <MapContainer
@@ -394,7 +416,7 @@ const LeafletMapInner: React.FC<ArcticMapLeafletProps & { onLoad: () => void }> 
       maxZoom={6}
       maxBounds={[[50, -180], [90, 180]]}
       maxBoundsViscosity={0.8}
-      whenReady={onLoad}
+      whenReady={handleMapReady}
     >
       <MapResizer width={width} height={height} />
 
@@ -404,8 +426,8 @@ const LeafletMapInner: React.FC<ArcticMapLeafletProps & { onLoad: () => void }> 
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
       />
 
-      {/* Zone polygons */}
-      {Object.entries(gameState.zones).map(([zoneId, zone]) => (
+      {/* Zone polygons - only render when map is ready */}
+      {mapReady && Object.entries(zones).map(([zoneId, zone]) => (
         <ZonePolygon
           key={zoneId}
           zone={zone}
@@ -480,6 +502,7 @@ export const ArcticMapLeaflet: React.FC<ArcticMapLeafletProps> = ({
           width={width}
           height={height}
           onLoad={handleLoad}
+          onError={handleError}
         />
       </MapErrorBoundary>
 
