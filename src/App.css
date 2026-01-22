@@ -34,25 +34,30 @@ body {
   overflow: hidden;
 }
 
+/* ============================================================================
+   COMPACT HEADER
+   ============================================================================ */
 .game-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1.5rem;
-  background: var(--bg-secondary);
+  padding: 0.25rem 0.75rem;
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(17, 24, 39, 0.95) 100%);
   border-bottom: 1px solid var(--border-color);
-  gap: 1rem;
+  gap: 0.5rem;
+  height: 40px;
+  min-height: 40px;
 }
 
-/* Player Identity in Header */
+/* Player Identity - Compact */
 .header-player {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 2px solid var(--border-color);
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
 }
 
 .player-portrait {
@@ -62,50 +67,72 @@ body {
 .player-info {
   display: flex;
   flex-direction: column;
+  line-height: 1.1;
 }
 
 .player-faction {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
 .player-leader {
-  font-size: 11px;
+  font-size: 8px;
   color: var(--text-secondary);
 }
 
+/* Header Center - Game Title & Status Inline */
 .header-title {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   flex: 1;
+  justify-content: center;
 }
 
 .game-header h1 {
-  font-size: 1.25rem;
-  letter-spacing: 0.2em;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
   color: #8ab4f8;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .header-status {
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  font-size: 0.875rem;
+  gap: 0.75rem;
+  font-size: 0.7rem;
+  align-items: center;
 }
 
 .header-status .year {
   color: var(--accent-yellow);
   font-weight: bold;
+  font-size: 0.75rem;
 }
 
 .header-status .season {
   text-transform: uppercase;
+  color: var(--text-secondary);
+  font-size: 0.65rem;
 }
 
+.header-status .turn {
+  background: rgba(59, 130, 246, 0.3);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #8ab4f8;
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+/* ============================================================================
+   MAIN LAYOUT
+   ============================================================================ */
 .game-main {
   display: grid;
-  grid-template-columns: 280px 1fr 320px;
+  grid-template-columns: 250px 1fr 280px;
   flex: 1;
   overflow: hidden;
 }
@@ -115,7 +142,10 @@ body {
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
-  padding: 1rem;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .right-panel {
@@ -128,6 +158,44 @@ body {
   flex-direction: column;
   background: var(--bg-primary);
   overflow: hidden;
+  position: relative;
+}
+
+/* Map Mode Toggle */
+.map-mode-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 50;
+  display: flex;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 3px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+
+.map-mode-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.map-mode-btn.active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: white;
 }
 
 .map-container {
@@ -135,7 +203,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 500px;
+  min-height: 400px;
 }
 
 /* Dashboard */
@@ -332,29 +400,33 @@ body {
 .action-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 0;
 }
 
 .action-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .action-header h3 {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
 }
 
 .action-budget {
   display: flex;
-  gap: 0.75rem;
-  font-size: 0.75rem;
+  gap: 0.5rem;
+  font-size: 0.7rem;
   color: var(--text-secondary);
 }
 
 .category-tabs {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
+  flex-shrink: 0;
 }
 
 .category-tab {
@@ -362,7 +434,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.5rem;
+  padding: 0.35rem;
   background: var(--bg-panel);
   border: 1px solid transparent;
   border-radius: 4px;
@@ -379,24 +451,25 @@ body {
 }
 
 .category-tab .icon {
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 .category-tab .label {
-  font-size: 0.625rem;
+  font-size: 0.55rem;
   text-transform: uppercase;
 }
 
 .action-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  max-height: 200px;
+  gap: 0.35rem;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
 .action-item {
-  padding: 0.5rem;
+  padding: 0.4rem;
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -415,8 +488,8 @@ body {
 
 .action-name {
   font-weight: bold;
-  font-size: 0.75rem;
-  margin-bottom: 0.25rem;
+  font-size: 0.7rem;
+  margin-bottom: 0.15rem;
 }
 
 .action-cost {
@@ -526,15 +599,16 @@ body {
 
 .end-turn-btn {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.6rem;
   background: var(--accent-green);
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .end-turn-btn:hover {
@@ -543,11 +617,12 @@ body {
 
 /* Event Log */
 .event-log {
-  padding: 0.75rem;
+  padding: 0.5rem;
   background: var(--bg-panel);
   border-radius: 4px;
-  max-height: 200px;
+  max-height: 150px;
   overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .event-log h4 {
@@ -582,20 +657,22 @@ body {
 
 /* Zone Detail - Enhanced */
 .zone-detail {
-  padding: 1rem;
+  padding: 0.75rem;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
+  max-height: 180px;
+  overflow-y: auto;
 }
 
 .zone-detail .zone-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .zone-detail h3 {
-  font-size: 1rem;
+  font-size: 0.9rem;
   margin: 0;
   color: #fff;
 }
@@ -1590,18 +1667,19 @@ body {
 .panel-tabs {
   display: flex;
   gap: 0.25rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
 
 .panel-tab {
   flex: 1;
-  padding: 0.5rem;
+  padding: 0.4rem;
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: bold;
   transition: all 0.2s ease;
 }

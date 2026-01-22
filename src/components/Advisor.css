@@ -1,28 +1,32 @@
 /* Advisor Container */
 .advisor-container {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
-  background: linear-gradient(180deg, #1a2744 0%, #0f1a2e 100%);
-  border: 2px solid #3a5a8c;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
+  bottom: 70px;
+  left: 270px;
+  background: linear-gradient(180deg, rgba(26, 39, 68, 0.95) 0%, rgba(15, 26, 46, 0.95) 100%);
+  border: 1px solid #3a5a8c;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  z-index: 100;
   transition: all 0.3s ease;
-  max-width: 320px;
-  min-width: 280px;
+  max-width: 300px;
+  min-width: 260px;
+  backdrop-filter: blur(4px);
 }
 
 .advisor-container.minimized {
-  padding: 8px 12px;
+  padding: 6px 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
+  min-width: auto;
+  max-width: 200px;
 }
 
 .advisor-container.minimized:hover {
   border-color: #4a8af8;
+  background: rgba(26, 39, 68, 1);
 }
 
 .advisor-idle {
@@ -35,8 +39,8 @@
 .advisor-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 10px;
+  padding: 8px 10px;
   cursor: pointer;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -95,13 +99,15 @@
 
 /* Advisor Body */
 .advisor-body {
-  padding: 12px;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .advisor-message {
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 6px;
+  padding: 10px;
   border-left: 3px solid #666;
 }
 
@@ -157,8 +163,8 @@
 
 .tip-text {
   color: #e0e0e0;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.4;
   margin: 0;
   font-style: italic;
 }

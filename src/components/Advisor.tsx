@@ -336,7 +336,7 @@ const ADVISOR_MOODS = {
 
 export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => {
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false); // Start minimized
   const [isTyping, setIsTyping] = useState(true);
   const [displayedText, setDisplayedText] = useState('');
 
@@ -404,9 +404,9 @@ export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => 
     return (
       <div className="advisor-container minimized">
         <div className="advisor-portrait">
-          <PixelPortrait leader={advisorInfo.leader} size={48} />
+          <PixelPortrait leader={advisorInfo.leader} size={32} />
         </div>
-        <span className="advisor-idle">Situation nominal. Awaiting orders...</span>
+        <span className="advisor-idle">Situation nominal...</span>
       </div>
     );
   }
@@ -415,7 +415,7 @@ export const Advisor: React.FC<AdvisorProps> = ({ gameState, selectedZone }) => 
     <div className={`advisor-container ${isExpanded ? 'expanded' : 'minimized'}`}>
       <div className="advisor-header" onClick={() => setIsExpanded(!isExpanded)}>
         <div className="advisor-portrait">
-          <PixelPortrait leader={advisorInfo.leader} size={48} />
+          <PixelPortrait leader={advisorInfo.leader} size={36} />
           <span className="advisor-mood" style={{ background: mood.color }}>
             {mood.emoji}
           </span>

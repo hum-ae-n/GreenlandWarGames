@@ -7,6 +7,7 @@ import { resolveCombat, UNIT_SPECS, OPERATION_SPECS, OperationType, UnitType } f
 import { getLeaderForFaction } from './game/leaders';
 import { ACHIEVEMENTS, CrisisChoice } from './game/drama';
 import { ArcticMap, ZoneDetail } from './components/ArcticMap';
+import { ArcticMap3D } from './components/ArcticMap3D';
 import { Dashboard, EventLog } from './components/Dashboard';
 import { ActionPanel } from './components/ActionPanel';
 import { FactionSelect } from './components/FactionSelect';
@@ -51,6 +52,7 @@ import './App.css';
 
 type GameScreen = 'faction_select' | 'playing' | 'game_over';
 type RightPanelMode = 'actions' | 'military';
+type MapMode = '2d' | '3d';
 
 function App() {
   const [screen, setScreen] = useState<GameScreen>('faction_select');
@@ -58,6 +60,7 @@ function App() {
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [mapSize, setMapSize] = useState({ width: 600, height: 600 });
   const [rightPanelMode, setRightPanelMode] = useState<RightPanelMode>('actions');
+  const [mapMode, setMapMode] = useState<MapMode>('2d');
   const [showLeaderDialog, setShowLeaderDialog] = useState<{
     leaderId: LeaderId;
     context: string;
@@ -977,7 +980,7 @@ function App() {
       <header className="game-header">
         <div className="header-player">
           <div className="player-portrait">
-            <PixelPortrait leader={playerLeader} size={48} />
+            <PixelPortrait leader={playerLeader} size={32} />
           </div>
           <div className="player-info">
             <span className="player-faction" style={{ color: playerFactionData.color }}>
@@ -1030,14 +1033,40 @@ function App() {
         </aside>
 
         <section className="center-panel">
+          <div className="map-mode-toggle">
+            <button
+              className={`map-mode-btn ${mapMode === '2d' ? 'active' : ''}`}
+              onClick={() => setMapMode('2d')}
+              title="2D Map View"
+            >
+              2D
+            </button>
+            <button
+              className={`map-mode-btn ${mapMode === '3d' ? 'active' : ''}`}
+              onClick={() => setMapMode('3d')}
+              title="3D Map View"
+            >
+              3D
+            </button>
+          </div>
           <div className="map-container">
-            <ArcticMap
-              gameState={gameState}
-              selectedZone={selectedZone}
-              onZoneSelect={setSelectedZone}
-              width={mapSize.width}
-              height={mapSize.height}
-            />
+            {mapMode === '2d' ? (
+              <ArcticMap
+                gameState={gameState}
+                selectedZone={selectedZone}
+                onZoneSelect={setSelectedZone}
+                width={mapSize.width}
+                height={mapSize.height}
+              />
+            ) : (
+              <ArcticMap3D
+                gameState={gameState}
+                selectedZone={selectedZone}
+                onZoneSelect={setSelectedZone}
+                width={mapSize.width}
+                height={mapSize.height}
+              />
+            )}
           </div>
           {selectedZoneData && (
             <ZoneDetail zone={selectedZoneData} gameState={gameState} onAction={handleZoneAction} />
