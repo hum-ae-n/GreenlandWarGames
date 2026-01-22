@@ -278,50 +278,61 @@ body {
 }
 
 .action-bar-content {
-  display: flex;
-  gap: 1rem;
   width: 100%;
 }
 
-.action-bar-content > * {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Zone detail in top bar - full width horizontal layout */
+/* Zone detail in top bar - FULL WIDTH horizontal layout */
 .top-action-bar .zone-detail {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   flex-wrap: wrap;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 0;
-  background: transparent;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
   width: 100%;
-  max-width: none;
+  max-width: none !important;
+  max-height: none !important;
+  overflow: visible !important;
 }
 
+/* Hide header - already shown in action-bar-header */
 .top-action-bar .zone-detail .zone-header {
-  display: none; /* Already shown in action-bar-header */
+  display: none !important;
 }
 
+/* Hide controller - already shown in action-bar-header */
 .top-action-bar .zone-detail .zone-controller,
 .top-action-bar .zone-detail .zone-unclaimed {
-  display: none; /* Already shown in action-bar-header */
+  display: none !important;
 }
 
+/* Resources row - inline */
 .top-action-bar .zone-detail .zone-resources-compact {
   display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
 }
 
+.top-action-bar .zone-detail .resource-item {
+  flex-direction: row;
+  gap: 0.25rem;
+}
+
+/* Actions section - flex grow to fill space */
 .top-action-bar .zone-detail .zone-actions {
   flex: 1;
-  min-width: 200px;
+  min-width: 300px;
+  margin: 0;
 }
 
 .top-action-bar .zone-detail .zone-actions h4 {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   margin-bottom: 0.5rem;
   color: var(--text-secondary);
 }
@@ -332,13 +343,17 @@ body {
   gap: 0.5rem;
 }
 
-.top-action-bar .zone-detail .action-btn {
+.top-action-bar .zone-detail .zone-action-btn {
   padding: 0.4rem 0.75rem;
   font-size: 0.7rem;
 }
 
+/* Strategic value - align to end */
 .top-action-bar .zone-detail .zone-strategic {
   margin-left: auto;
+  padding: 0.5rem 1rem;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
 }
 
 /* Map container adjusts when action bar is shown */
