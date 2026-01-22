@@ -29,6 +29,7 @@ import { ReputationMini, ReputationPanel } from './components/ReputationPanel';
 import { ObjectivesMini, ObjectivesPanel } from './components/ObjectivesPanel';
 import { EconomicsMini, EconomicsPanel } from './components/EconomicsPanel';
 import { TechMini, TechPanel } from './components/TechPanel';
+import { AIGuide } from './components/AIGuide';
 import { FACTIONS } from './data/factions';
 import { getChiptuneEngine } from './audio/ChiptuneEngine';
 import { DECISION_TEMPLATES, DecisionType } from './game/reputation';
@@ -80,6 +81,7 @@ function App() {
   const [showObjectivesPanel, setShowObjectivesPanel] = useState(false);
   const [showEconomicsPanel, setShowEconomicsPanel] = useState(false);
   const [showTechPanel, setShowTechPanel] = useState(false);
+  const [showAIGuide, setShowAIGuide] = useState(false);
 
   // Economic state
   const [economicState, setEconomicState] = useState<EconomicState | null>(null);
@@ -174,6 +176,9 @@ function App() {
     setEconomicState(createInitialEconomicState());
     setTechState(createInitialTechState());
     setScreen('playing');
+
+    // Set faction-specific music style
+    getChiptuneEngine().setFaction(factionId);
 
     // Show tutorial for new players, then show greeting
     if (!hasSeenTutorial) {
@@ -1180,6 +1185,18 @@ function App() {
 
       {/* Help Button */}
       <HelpButton onClick={() => setShowTutorial(true)} />
+
+      {/* AI Guide Button */}
+      <button
+        className="ai-guide-button"
+        onClick={() => setShowAIGuide(true)}
+        title="AI Player Guide"
+      >
+        🤖
+      </button>
+
+      {/* AI Guide Modal */}
+      <AIGuide isOpen={showAIGuide} onClose={() => setShowAIGuide(false)} />
 
       {/* Strategic Advisor */}
       <Advisor
