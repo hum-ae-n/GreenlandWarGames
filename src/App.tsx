@@ -274,6 +274,187 @@ function App() {
     }
   }, [gameState, updateReputationForAction]);
 
+  // Handle zone-specific actions from ZoneDetail panel
+  const handleZoneAction = useCallback((actionId: string, zoneId: string) => {
+    if (!gameState) return;
+
+    const newState = JSON.parse(JSON.stringify(gameState)) as GameState;
+    const zone = newState.zones[zoneId];
+    const playerFaction = newState.factions[newState.playerFaction];
+
+    const notify = (type: 'achievement' | 'discovery' | 'crisis' | 'combat' | 'environmental', title: string, description: string) => {
+      newState.notifications.push({
+        id: `notif_${actionId}_${Date.now()}`,
+        type,
+        title,
+        description,
+        timestamp: Date.now(),
+      });
+    };
+
+    switch (actionId) {
+      case 'claim': {
+        // Claim unclaimed territory - costs influence
+        const cost = 25;
+        if (playerFaction.resources.influencePoints < cost) {
+          notify('environmental', 'Insufficient Influence', `Need ${cost} influence to claim ${zone.name}.`);
+          break;
+        }
+        playerFaction.resources.influencePoints -= cost;
+        zone.controller = newState.playerFaction;
+        playerFaction.controlledZones.push(zoneId);
+        notify('achievement', 'Territory Claimed', `${playerFaction.name} has claimed ${zone.name}!`);
+        // Increase tension with nearby factions
+        Object.values(newState.zones).forEach(z => {
+          if (z.controller && z.controller !== newState.playerFaction) {
+            updateTension(newState, newState.playerFaction, z.controller, 5);
+          }
+        });
+        break;
+      }
+      case 'explore': {
+        // Resource survey - costs economy, may reveal resources
+        const cost = 20;
+        if (playerFaction.resources.economicOutput < cost) {
+          notify('environmental', 'Insufficient Funds', `Need ${cost} economic output for resource survey.`);
+          break;
+        }
+        playerFaction.resources.economicOutput -= cost;
+        const discoveryRoll = Math.random();
+        if (discoveryRoll > 0.4) {
+          const resourceType = Math.random() > 0.5 ? 'oil' : 'gas';
+          const amount = Math.floor(Math.random() * 3) + 1;
+          zone.resources[resourceType] += amount;
+          notify('discovery', 'Resources Discovered!', `Survey found +${amount} ${resourceType} in ${zone.name}!`);
+        } else {
+          notify('environmental', 'Survey Complete', `Survey of ${zone.name} found no significant resources.`);
+        }
+        break;
+      }
+      case 'fortify': {
+        // Fortify position - costs economy, increases military presence
+        const cost = 30;
+        if (playerFaction.resources.economicOutput < cost) {
+          notify('environmental', 'Insufficient Funds', `Need ${cost} economic output to fortify.`);
+          break;
+        }
+        playerFaction.resources.economicOutput -= cost;
+        zone.militaryPresence[newState.playerFaction] = (zone.militaryPresence[newState.playerFaction] || 0) + 2;
+        playerFaction.resources.militaryReadiness += 5;
+        notify('combat', 'Position Fortified', `Strengthened defenses in ${zone.name}.`);
+        break;
+      }
+      case 'extract': {
+        // Extract resources - generates income from controlled zone
+        const income = zone.resources.oil * 2 + zone.resources.gas * 1.5 + zone.resources.minerals;
+        playerFaction.resources.economicOutput += Math.floor(income);
+        notify('discovery', 'Resources Extracted', `Gained +${Math.floor(income)} economic value from ${zone.name}.`);
+        break;
+      }
+      case 'toll': {
+        // Control shipping at chokepoint - generates income
+        const income = zone.resources.shipping * 3;
+        playerFaction.resources.economicOutput += income;
+        notify('discovery', 'Tolls Collected', `Collected ${income} in shipping tolls at ${zone.name}.`);
+        break;
+      }
+      case 'negotiate': {
+        // Negotiate access - costs influence, reduces tension
+        const cost = 15;
+        if (playerFaction.resources.influencePoints < cost) {
+          notify('environmental', 'Insufficient Influence', `Need ${cost} influence to negotiate.`);
+          break;
+        }
+        playerFaction.resources.influencePoints -= cost;
+        if (zone.controller) {
+          updateTension(newState, newState.playerFaction, zone.controller, -10);
+        }
+        notify('achievement', 'Negotiations Opened', `Opened diplomatic talks regarding ${zone.name}.`);
+        break;
+      }
+      case 'invest': {
+        // Joint venture - costs economy, may gain shared access
+        const cost = 40;
+        if (playerFaction.resources.economicOutput < cost) {
+          notify('environmental', 'Insufficient Funds', `Need ${cost} economic output for joint venture.`);
+          break;
+        }
+        playerFaction.resources.economicOutput -= cost;
+        if (zone.controller) {
+          updateTension(newState, newState.playerFaction, zone.controller, -5);
+        }
+        playerFaction.resources.economicOutput += 15; // Future returns
+        notify('achievement', 'Joint Venture Proposed', `Economic partnership proposed in ${zone.name}.`);
+        break;
+      }
+      case 'pressure': {
+        // Apply pressure - costs influence, raises tension
+        const cost = 20;
+        if (playerFaction.resources.influencePoints < cost) {
+          notify('environmental', 'Insufficient Influence', `Need ${cost} influence to apply pressure.`);
+          break;
+        }
+        playerFaction.resources.influencePoints -= cost;
+        if (zone.controller) {
+          updateTension(newState, newState.playerFaction, zone.controller, 15);
+        }
+        notify('crisis', 'Pressure Applied', `Diplomatic pressure applied regarding ${zone.name}.`);
+        break;
+      }
+      case 'patrol': {
+        // Freedom of navigation - military presence, raises tension
+        const cost = 15;
+        if (playerFaction.resources.economicOutput < cost) {
+          notify('environmental', 'Insufficient Funds', `Need ${cost} economic output for patrol.`);
+          break;
+        }
+        playerFaction.resources.economicOutput -= cost;
+        zone.militaryPresence[newState.playerFaction] = (zone.militaryPresence[newState.playerFaction] || 0) + 1;
+        if (zone.controller) {
+          updateTension(newState, newState.playerFaction, zone.controller, 10);
+        }
+        notify('combat', 'Patrol Conducted', `Freedom of navigation patrol near ${zone.name}.`);
+        break;
+      }
+      case 'blockade': {
+        // Naval blockade - high tension, economic damage
+        const cost = 35;
+        if (playerFaction.resources.economicOutput < cost) {
+          notify('environmental', 'Insufficient Funds', `Need ${cost} economic output for blockade.`);
+          break;
+        }
+        playerFaction.resources.economicOutput -= cost;
+        if (zone.controller) {
+          updateTension(newState, newState.playerFaction, zone.controller, 25);
+          newState.factions[zone.controller].resources.economicOutput -= 20;
+        }
+        playerFaction.resources.legitimacy -= 10;
+        notify('crisis', 'Blockade Established', `Naval blockade around ${zone.name}!`);
+        break;
+      }
+      case 'attack': {
+        // Military operation - attempt to seize zone
+        notify('combat', 'Combat Required', `Use the Military Panel for operations against ${zone.name}.`);
+        break;
+      }
+      case 'intel': {
+        // Gather intelligence
+        const cost = 10;
+        if (playerFaction.resources.influencePoints < cost) {
+          notify('environmental', 'Insufficient Influence', `Need ${cost} influence for intelligence op.`);
+          break;
+        }
+        playerFaction.resources.influencePoints -= cost;
+        const forces = Object.entries(zone.militaryPresence).map(([f, s]) => `${f}: ${s}`).join(', ') || 'None';
+        notify('discovery', 'Intel Gathered', `${zone.name} military presence: ${forces}`);
+        break;
+      }
+    }
+
+    setGameState(newState);
+    getChiptuneEngine().playSfx('action');
+  }, [gameState]);
+
   const handleStartOperation = useCallback((
     operation: OperationType,
     unitIds: string[],
@@ -854,7 +1035,7 @@ function App() {
             />
           </div>
           {selectedZoneData && (
-            <ZoneDetail zone={selectedZoneData} gameState={gameState} />
+            <ZoneDetail zone={selectedZoneData} gameState={gameState} onAction={handleZoneAction} />
           )}
         </section>
 
