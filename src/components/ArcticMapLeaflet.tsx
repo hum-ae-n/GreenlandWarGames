@@ -1,0 +1,333 @@
+import { useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Polygon, Tooltip, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { GameState, MapZone, FactionId } from '../types/game';
+
+interface ArcticMapLeafletProps {
+  gameState: GameState;
+  selectedZone: string | null;
+  onZoneSelect: (zoneId: string | null) => void;
+  width: number;
+  height: number;
+}
+
+// Faction colors
+const FACTION_COLORS: Record<FactionId | 'unclaimed', string> = {
+  usa: '#3b82f6',
+  russia: '#ef4444',
+  china: '#eab308',
+  eu: '#8b5cf6',
+  canada: '#f97316',
+  norway: '#06b6d4',
+  denmark: '#ec4899',
+  nato: '#22c55e',
+  indigenous: '#84cc16',
+  unclaimed: '#4b5563',
+};
+
+// Faction flags
+const FACTION_FLAGS: Record<FactionId | 'unclaimed', string> = {
+  usa: '🇺🇸',
+  russia: '🇷🇺',
+  china: '🇨🇳',
+  eu: '🇪🇺',
+  canada: '🇨🇦',
+  norway: '🇳🇴',
+  denmark: '🇩🇰',
+  nato: '🏛️',
+  indigenous: '🏔️',
+  unclaimed: '❄️',
+};
+
+// Real-world approximate coordinates for each zone (lat, lng)
+// These create polygon boundaries for each game zone
+const ZONE_COORDINATES: Record<string, [number, number][]> = {
+  // North Pole - central Arctic
+  north_pole: [
+    [88, -30], [88, 30], [88, 90], [88, 150], [88, -150], [88, -90]
+  ],
+
+  // Lomonosov Ridge - runs from Russia to Greenland
+  lomonosov_ridge: [
+    [85, 40], [87, 60], [87, 100], [85, 120], [83, 100], [83, 60]
+  ],
+
+  // Russian Sector
+  murmansk: [
+    [68, 28], [70, 28], [72, 35], [72, 45], [70, 45], [68, 40]
+  ],
+
+  kara: [
+    [72, 55], [78, 55], [80, 70], [80, 90], [75, 90], [72, 75]
+  ],
+
+  laptev: [
+    [72, 100], [78, 100], [80, 120], [80, 140], [75, 140], [72, 125]
+  ],
+
+  east_siberian: [
+    [70, 145], [75, 145], [78, 160], [78, 175], [73, 175], [70, 165]
+  ],
+
+  chukchi_ru: [
+    [66, 172], [72, 172], [74, -175], [74, -168], [70, -168], [66, -175]
+  ],
+
+  nsr_west: [
+    [75, 45], [80, 50], [82, 70], [80, 85], [77, 80], [75, 60]
+  ],
+
+  nsr_east: [
+    [75, 140], [80, 145], [82, 165], [80, 175], [77, 170], [75, 155]
+  ],
+
+  // US Sector (Alaska)
+  alaska: [
+    [64, -168], [68, -168], [70, -155], [70, -145], [66, -145], [64, -155]
+  ],
+
+  beaufort_us: [
+    [70, -155], [74, -155], [76, -145], [76, -140], [73, -140], [70, -145]
+  ],
+
+  bering_us: [
+    [64, -172], [66, -172], [66, -168], [66, -165], [64, -165], [64, -168]
+  ],
+
+  // Canadian Sector
+  beaufort_ca: [
+    [70, -140], [76, -140], [78, -125], [76, -115], [72, -115], [70, -125]
+  ],
+
+  canadian_archipelago: [
+    [74, -115], [80, -100], [82, -85], [80, -70], [76, -75], [74, -95]
+  ],
+
+  nwp_west: [
+    [68, -125], [72, -120], [74, -110], [72, -100], [68, -105], [66, -115]
+  ],
+
+  nwp_east: [
+    [72, -85], [76, -80], [78, -65], [76, -55], [72, -60], [70, -75]
+  ],
+
+  // Greenland/Denmark Sector
+  greenland_north: [
+    [80, -55], [83, -45], [83, -25], [80, -20], [78, -30], [78, -50]
+  ],
+
+  greenland_south: [
+    [72, -55], [78, -55], [78, -35], [75, -25], [70, -35], [70, -50]
+  ],
+
+  greenland_east: [
+    [70, -25], [76, -20], [78, -5], [76, 5], [72, 0], [70, -15]
+  ],
+
+  // Norwegian Sector
+  svalbard: [
+    [76, 10], [80, 10], [80, 25], [80, 30], [76, 30], [76, 18]
+  ],
+
+  barents_no: [
+    [70, 15], [75, 20], [76, 30], [74, 40], [70, 35], [69, 25]
+  ],
+
+  norwegian_sea: [
+    [65, -5], [70, 0], [72, 12], [70, 18], [66, 12], [64, 5]
+  ],
+
+  // Strategic Chokepoints
+  giuk_gap: [
+    [60, -30], [65, -20], [67, -5], [65, 5], [60, 0], [58, -15]
+  ],
+
+  fram_strait: [
+    [78, -10], [82, -5], [82, 10], [80, 15], [78, 10], [77, 0]
+  ],
+
+  // Central contested areas
+  high_arctic_west: [
+    [82, -90], [86, -60], [86, -30], [84, -20], [82, -40], [80, -70]
+  ],
+
+  high_arctic_east: [
+    [82, 0], [86, 20], [86, 50], [84, 60], [82, 45], [80, 20]
+  ],
+};
+
+// Component to handle map resize
+const MapResizer: React.FC<{ width: number; height: number }> = ({ width, height }) => {
+  const map = useMap();
+  const prevSize = useRef({ width, height });
+
+  useEffect(() => {
+    if (prevSize.current.width !== width || prevSize.current.height !== height) {
+      map.invalidateSize();
+      prevSize.current = { width, height };
+    }
+  }, [map, width, height]);
+
+  return null;
+};
+
+// Zone polygon component
+const ZonePolygon: React.FC<{
+  zone: MapZone;
+  isSelected: boolean;
+  isPlayerZone: boolean;
+  onSelect: () => void;
+}> = ({ zone, isSelected, isPlayerZone, onSelect }) => {
+  const coordinates = ZONE_COORDINATES[zone.id];
+  if (!coordinates) return null;
+
+  const color = zone.controller
+    ? FACTION_COLORS[zone.controller as FactionId]
+    : FACTION_COLORS.unclaimed;
+
+  const flag = zone.controller
+    ? FACTION_FLAGS[zone.controller as FactionId]
+    : FACTION_FLAGS.unclaimed;
+
+  return (
+    <Polygon
+      positions={coordinates}
+      pathOptions={{
+        color: isSelected ? '#ffffff' : color,
+        fillColor: color,
+        fillOpacity: isSelected ? 0.7 : (isPlayerZone ? 0.6 : 0.4),
+        weight: isSelected ? 3 : (isPlayerZone ? 2 : 1),
+        dashArray: zone.contestedBy.length > 0 ? '5, 5' : undefined,
+      }}
+      eventHandlers={{
+        click: (e) => {
+          L.DomEvent.stopPropagation(e);
+          onSelect();
+        },
+      }}
+    >
+      <Tooltip permanent direction="center" className="zone-tooltip">
+        <div style={{
+          textAlign: 'center',
+          fontFamily: 'monospace',
+          fontSize: '11px',
+          lineHeight: 1.2,
+        }}>
+          <div style={{ fontSize: '16px' }}>{flag}</div>
+          <div style={{
+            fontWeight: 'bold',
+            color: '#fff',
+            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+            maxWidth: '80px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {zone.name.length > 12 ? zone.name.slice(0, 10) + '...' : zone.name}
+          </div>
+          <div style={{
+            fontSize: '9px',
+            color: '#ccc',
+            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+          }}>
+            {zone.controller?.toUpperCase() || '---'}
+          </div>
+          {(zone.resources.oil > 5 || zone.resources.gas > 5) && (
+            <div style={{ fontSize: '9px' }}>
+              {zone.resources.oil > 5 && '🛢️'}
+              {zone.resources.gas > 5 && '⛽'}
+            </div>
+          )}
+        </div>
+      </Tooltip>
+    </Polygon>
+  );
+};
+
+export const ArcticMapLeaflet: React.FC<ArcticMapLeafletProps> = ({
+  gameState,
+  selectedZone,
+  onZoneSelect,
+  width,
+  height,
+}) => {
+  // Arctic-centered view
+  const arcticCenter: [number, number] = [75, 0];
+  const defaultZoom = 2;
+
+  return (
+    <div style={{
+      width: '100%',
+      height: '100%',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      background: '#0a1628',
+    }}>
+      <MapContainer
+        center={arcticCenter}
+        zoom={defaultZoom}
+        style={{ width: '100%', height: '100%' }}
+        minZoom={1}
+        maxZoom={6}
+        maxBounds={[[50, -180], [90, 180]]}
+        maxBoundsViscosity={0.8}
+      >
+        <MapResizer width={width} height={height} />
+
+        {/* Dark themed tile layer - CartoDB Dark Matter */}
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        />
+
+        {/* Zone polygons */}
+        {Object.entries(gameState.zones).map(([zoneId, zone]) => (
+          <ZonePolygon
+            key={zoneId}
+            zone={zone}
+            isSelected={selectedZone === zoneId}
+            isPlayerZone={zone.controller === gameState.playerFaction}
+            onSelect={() => onZoneSelect(selectedZone === zoneId ? null : zoneId)}
+          />
+        ))}
+      </MapContainer>
+
+      {/* Custom styles for tooltips */}
+      <style>{`
+        .zone-tooltip {
+          background: rgba(10, 22, 40, 0.9) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
+          border-radius: 4px !important;
+          padding: 4px 6px !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+        }
+        .zone-tooltip::before {
+          display: none !important;
+        }
+        .leaflet-container {
+          background: #0a1628 !important;
+          font-family: 'Press Start 2P', monospace !important;
+        }
+        .leaflet-control-attribution {
+          background: rgba(10, 22, 40, 0.8) !important;
+          color: #666 !important;
+          font-size: 9px !important;
+        }
+        .leaflet-control-attribution a {
+          color: #888 !important;
+        }
+        .leaflet-control-zoom a {
+          background: rgba(10, 22, 40, 0.9) !important;
+          color: #fff !important;
+          border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        .leaflet-control-zoom a:hover {
+          background: rgba(30, 50, 80, 0.9) !important;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default ArcticMapLeaflet;

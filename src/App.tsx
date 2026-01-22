@@ -8,6 +8,7 @@ import { getLeaderForFaction } from './game/leaders';
 import { ACHIEVEMENTS, CrisisChoice } from './game/drama';
 import { ArcticMap, ZoneDetail } from './components/ArcticMap';
 import { ArcticMap3D } from './components/ArcticMap3D';
+import { ArcticMapLeaflet } from './components/ArcticMapLeaflet';
 import { Dashboard, EventLog } from './components/Dashboard';
 import { ActionPanel } from './components/ActionPanel';
 import { FactionSelect } from './components/FactionSelect';
@@ -52,7 +53,7 @@ import './App.css';
 
 type GameScreen = 'faction_select' | 'playing' | 'game_over';
 type RightPanelMode = 'actions' | 'military';
-type MapMode = '2d' | '3d';
+type MapMode = '2d' | '3d' | 'world';
 
 function App() {
   const [screen, setScreen] = useState<GameScreen>('faction_select');
@@ -60,7 +61,7 @@ function App() {
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [mapSize, setMapSize] = useState({ width: 600, height: 600 });
   const [rightPanelMode, setRightPanelMode] = useState<RightPanelMode>('actions');
-  const [mapMode, setMapMode] = useState<MapMode>('2d');
+  const [mapMode, setMapMode] = useState<MapMode>('world');
   const [showLeaderDialog, setShowLeaderDialog] = useState<{
     leaderId: LeaderId;
     context: string;
@@ -92,22 +93,27 @@ function App() {
   // Tech state
   const [techState, setTechState] = useState<TechState | null>(null);
 
-  // Handle window resize
+  // Handle window resize - fill available space
   useEffect(() => {
     const updateSize = () => {
       const container = document.querySelector('.map-container');
       if (container) {
         const rect = container.getBoundingClientRect();
         setMapSize({
-          width: Math.min(rect.width, 700),
-          height: Math.min(rect.height, 700),
+          width: rect.width,
+          height: rect.height,
         });
       }
     };
 
     updateSize();
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    // Also update on slight delay to catch layout changes
+    const timeout = setTimeout(updateSize, 100);
+    return () => {
+      window.removeEventListener('resize', updateSize);
+      clearTimeout(timeout);
+    };
   }, [screen]);
 
   // Update music mood based on highest tension
@@ -1035,22 +1041,37 @@ function App() {
         <section className="center-panel">
           <div className="map-mode-toggle">
             <button
+              className={`map-mode-btn ${mapMode === 'world' ? 'active' : ''}`}
+              onClick={() => setMapMode('world')}
+              title="World Map (OpenStreetMap)"
+            >
+              🌍
+            </button>
+            <button
               className={`map-mode-btn ${mapMode === '2d' ? 'active' : ''}`}
               onClick={() => setMapMode('2d')}
-              title="2D Map View"
+              title="2D Hex Map"
             >
               2D
             </button>
             <button
               className={`map-mode-btn ${mapMode === '3d' ? 'active' : ''}`}
               onClick={() => setMapMode('3d')}
-              title="3D Map View"
+              title="3D View"
             >
               3D
             </button>
           </div>
           <div className="map-container">
-            {mapMode === '2d' ? (
+            {mapMode === 'world' ? (
+              <ArcticMapLeaflet
+                gameState={gameState}
+                selectedZone={selectedZone}
+                onZoneSelect={setSelectedZone}
+                width={mapSize.width}
+                height={mapSize.height}
+              />
+            ) : mapMode === '2d' ? (
               <ArcticMap
                 gameState={gameState}
                 selectedZone={selectedZone}
