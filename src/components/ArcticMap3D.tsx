@@ -26,6 +26,122 @@ const FACTION_COLORS: Record<FactionId | 'unclaimed', string> = {
   unclaimed: '#4b5563',
 };
 
+// Faction flags (emoji)
+const FACTION_FLAGS: Record<FactionId | 'unclaimed', string> = {
+  usa: '🇺🇸',
+  russia: '🇷🇺',
+  china: '🇨🇳',
+  eu: '🇪🇺',
+  canada: '🇨🇦',
+  norway: '🇳🇴',
+  denmark: '🇩🇰',
+  nato: '🏛️',
+  indigenous: '🏔️',
+  unclaimed: '❄️',
+};
+
+// Faction short names for 3D labels
+const FACTION_LABELS: Record<FactionId | 'unclaimed', string> = {
+  usa: 'USA',
+  russia: 'RUS',
+  china: 'CHN',
+  eu: 'EU',
+  canada: 'CAN',
+  norway: 'NOR',
+  denmark: 'DEN',
+  nato: 'NATO',
+  indigenous: 'IND',
+  unclaimed: '---',
+};
+
+// Geography data - approximate positions for major landmasses
+const GEOGRAPHY = {
+  // Greenland - center of map
+  greenland: {
+    position: [0, 0.05, 0] as [number, number, number],
+    scale: [1.2, 0.15, 1.5] as [number, number, number],
+    color: '#e8e8e8',
+  },
+  // North America (Alaska/Canada)
+  northAmerica: {
+    position: [-2.5, 0.03, 1] as [number, number, number],
+    scale: [1.5, 0.1, 2] as [number, number, number],
+    color: '#d4c4a8',
+  },
+  // Russia/Siberia
+  russia: {
+    position: [2, 0.03, -1.5] as [number, number, number],
+    scale: [2, 0.08, 1.2] as [number, number, number],
+    color: '#c9b896',
+  },
+  // Scandinavia
+  scandinavia: {
+    position: [1.5, 0.03, 2] as [number, number, number],
+    scale: [0.8, 0.1, 1.2] as [number, number, number],
+    color: '#b8d4b8',
+  },
+  // Svalbard
+  svalbard: {
+    position: [0.8, 0.08, 1.2] as [number, number, number],
+    scale: [0.3, 0.12, 0.25] as [number, number, number],
+    color: '#ffffff',
+  },
+  // Iceland
+  iceland: {
+    position: [-0.5, 0.06, 2.2] as [number, number, number],
+    scale: [0.4, 0.1, 0.3] as [number, number, number],
+    color: '#a8c4d8',
+  },
+};
+
+// Landmass component
+const Landmass: React.FC<{
+  position: [number, number, number];
+  scale: [number, number, number];
+  color: string;
+  name: string;
+}> = ({ position, scale, color, name }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <group position={position}>
+      <mesh
+        ref={meshRef}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+        scale={scale}
+      >
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial
+          color={color}
+          roughness={0.9}
+          metalness={0.1}
+        />
+      </mesh>
+      {/* Snow cap on top */}
+      <mesh position={[0, scale[1] / 2 + 0.01, 0]} scale={[scale[0] * 0.8, 0.02, scale[2] * 0.8]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.8} />
+      </mesh>
+      {hovered && (
+        <Html position={[0, scale[1] + 0.3, 0]} center>
+          <div style={{
+            background: 'rgba(0,0,0,0.8)',
+            color: '#fff',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            fontSize: '11px',
+            whiteSpace: 'nowrap',
+          }}>
+            {name}
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+};
+
 // Ice Hex component - represents a zone
 interface IceHexProps {
   zone: MapZone;
@@ -84,22 +200,54 @@ const IceHex: React.FC<IceHexProps> = ({ zone, position, isSelected, isPlayerZon
         </mesh>
       )}
 
+      {/* Flag/Label always visible - larger and more prominent */}
+      <Html position={[0, iceHeight + 0.25, 0]} center style={{ pointerEvents: 'none' }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '2px',
+        }}>
+          <div style={{
+            fontSize: '24px',
+            textShadow: '0 0 6px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.5)',
+            filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))',
+          }}>
+            {FACTION_FLAGS[zone.controller as FactionId] || FACTION_FLAGS.unclaimed}
+          </div>
+          <div style={{
+            fontSize: '9px',
+            fontWeight: 'bold',
+            color: '#fff',
+            background: 'rgba(0,0,0,0.7)',
+            padding: '1px 4px',
+            borderRadius: '2px',
+            textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+          }}>
+            {FACTION_LABELS[zone.controller as FactionId] || FACTION_LABELS.unclaimed}
+          </div>
+        </div>
+      </Html>
+
       {/* Zone label on hover */}
       {hovered && (
-        <Html position={[0, 0.5, 0]} center style={{ pointerEvents: 'none' }}>
+        <Html position={[0, 0.6, 0]} center style={{ pointerEvents: 'none' }}>
           <div style={{
-            background: 'rgba(0,0,0,0.85)',
+            background: 'rgba(0,0,0,0.9)',
             color: '#fff',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            fontSize: '11px',
+            padding: '6px 10px',
+            borderRadius: '6px',
+            fontSize: '12px',
             whiteSpace: 'nowrap',
-            border: `1px solid ${color}`,
+            border: `2px solid ${color}`,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
           }}>
-            <div style={{ fontWeight: 'bold' }}>{zone.name}</div>
-            <div style={{ fontSize: '9px', color: '#aaa' }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{zone.name}</div>
+            <div style={{ fontSize: '10px', color: '#aaa' }}>
               {zone.controller ? zone.controller.toUpperCase() : 'Unclaimed'}
             </div>
+            {zone.resources.oil > 0 && <div style={{ fontSize: '9px', color: '#ffd700' }}>🛢️ Oil: {zone.resources.oil}</div>}
+            {zone.resources.gas > 0 && <div style={{ fontSize: '9px', color: '#87ceeb' }}>⛽ Gas: {zone.resources.gas}</div>}
           </div>
         </Html>
       )}
@@ -282,27 +430,143 @@ const MilitaryUnit: React.FC<MilitaryUnitProps> = ({ type, position, owner }) =>
   );
 };
 
-// Arctic water/ocean
+// Arctic water/ocean with animated waves
 const ArcticOcean: React.FC = () => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const geometryRef = useRef<THREE.PlaneGeometry>(null);
 
   useFrame(({ clock }) => {
-    if (meshRef.current && meshRef.current.material instanceof THREE.ShaderMaterial) {
-      meshRef.current.material.uniforms.uTime.value = clock.elapsedTime;
+    if (geometryRef.current) {
+      const positions = geometryRef.current.attributes.position;
+      const time = clock.elapsedTime;
+
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const y = positions.getY(i);
+        // Create gentle wave motion
+        const wave1 = Math.sin(x * 0.5 + time * 0.5) * 0.03;
+        const wave2 = Math.sin(y * 0.3 + time * 0.3) * 0.02;
+        const wave3 = Math.sin((x + y) * 0.2 + time * 0.7) * 0.015;
+        positions.setZ(i, wave1 + wave2 + wave3);
+      }
+      positions.needsUpdate = true;
     }
   });
 
   return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
-      <planeGeometry args={[20, 20, 64, 64]} />
+    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]}>
+      <planeGeometry ref={geometryRef} args={[25, 25, 48, 48]} />
       <meshStandardMaterial
-        color="#1a3a5c"
-        metalness={0.3}
-        roughness={0.7}
+        color="#1a4a6c"
+        metalness={0.4}
+        roughness={0.6}
         transparent
-        opacity={0.9}
+        opacity={0.95}
       />
     </mesh>
+  );
+};
+
+// Aurora Borealis effect
+const Aurora: React.FC = () => {
+  const groupRef = useRef<THREE.Group>(null);
+  const [particles] = useState(() => {
+    // Create aurora particle positions
+    const positions: [number, number, number][] = [];
+    for (let i = 0; i < 50; i++) {
+      const angle = (i / 50) * Math.PI * 2;
+      const radius = 6 + Math.random() * 2;
+      positions.push([
+        Math.cos(angle) * radius,
+        3 + Math.random() * 2,
+        Math.sin(angle) * radius,
+      ]);
+    }
+    return positions;
+  });
+
+  useFrame(({ clock }) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = clock.elapsedTime * 0.02;
+      // Animate children
+      groupRef.current.children.forEach((child, i) => {
+        if (child instanceof THREE.Mesh) {
+          const phase = i * 0.3;
+          child.position.y = 3 + Math.sin(clock.elapsedTime * 0.5 + phase) * 0.5;
+          child.scale.y = 1 + Math.sin(clock.elapsedTime * 0.8 + phase) * 0.3;
+          const material = child.material as THREE.MeshBasicMaterial;
+          material.opacity = 0.2 + Math.sin(clock.elapsedTime * 0.3 + phase) * 0.15;
+        }
+      });
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {particles.map((pos, i) => (
+        <mesh key={i} position={pos}>
+          <planeGeometry args={[0.3, 2]} />
+          <meshBasicMaterial
+            color={i % 3 === 0 ? '#00ff88' : i % 3 === 1 ? '#00ffcc' : '#88ffaa'}
+            transparent
+            opacity={0.25}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
+// Floating ice chunks in the ocean
+const IceChunks: React.FC = () => {
+  const groupRef = useRef<THREE.Group>(null);
+  const [chunks] = useState(() => {
+    const positions: { pos: [number, number, number]; scale: number; speed: number }[] = [];
+    for (let i = 0; i < 20; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 4 + Math.random() * 4;
+      positions.push({
+        pos: [
+          Math.cos(angle) * radius,
+          -0.05,
+          Math.sin(angle) * radius,
+        ],
+        scale: 0.05 + Math.random() * 0.1,
+        speed: 0.3 + Math.random() * 0.5,
+      });
+    }
+    return positions;
+  });
+
+  useFrame(({ clock }) => {
+    if (groupRef.current) {
+      groupRef.current.children.forEach((child, i) => {
+        if (child instanceof THREE.Mesh) {
+          const chunk = chunks[i];
+          // Gentle bobbing motion
+          child.position.y = -0.05 + Math.sin(clock.elapsedTime * chunk.speed) * 0.02;
+          child.rotation.y = clock.elapsedTime * 0.1 * chunk.speed;
+        }
+      });
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {chunks.map((chunk, i) => (
+        <mesh key={i} position={chunk.pos} scale={chunk.scale}>
+          <icosahedronGeometry args={[1, 0]} />
+          <meshStandardMaterial
+            color="#e0f0ff"
+            roughness={0.3}
+            metalness={0.1}
+            transparent
+            opacity={0.9}
+          />
+        </mesh>
+      ))}
+    </group>
   );
 };
 
@@ -396,6 +660,45 @@ const ArcticScene: React.FC<{
 
       {/* Arctic ocean */}
       <ArcticOcean />
+
+      {/* Floating ice chunks */}
+      <IceChunks />
+
+      {/* Aurora Borealis */}
+      <Aurora />
+
+      {/* Geography - major landmasses */}
+      <Landmass {...GEOGRAPHY.greenland} name="Greenland" />
+      <Landmass {...GEOGRAPHY.northAmerica} name="North America" />
+      <Landmass {...GEOGRAPHY.russia} name="Russia" />
+      <Landmass {...GEOGRAPHY.scandinavia} name="Scandinavia" />
+      <Landmass {...GEOGRAPHY.svalbard} name="Svalbard" />
+      <Landmass {...GEOGRAPHY.iceland} name="Iceland" />
+
+      {/* North Pole marker */}
+      <group position={[0, 0.3, 0]}>
+        <mesh>
+          <cylinderGeometry args={[0.02, 0.02, 0.6, 8]} />
+          <meshStandardMaterial color="#ff0000" metalness={0.8} />
+        </mesh>
+        <mesh position={[0, 0.35, 0]}>
+          <sphereGeometry args={[0.05, 16, 16]} />
+          <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.5} />
+        </mesh>
+        <Html position={[0, 0.5, 0]} center>
+          <div style={{
+            fontSize: '10px',
+            fontWeight: 'bold',
+            color: '#fff',
+            background: 'rgba(255,0,0,0.8)',
+            padding: '2px 6px',
+            borderRadius: '3px',
+            whiteSpace: 'nowrap',
+          }}>
+            NORTH POLE
+          </div>
+        </Html>
+      </group>
 
       {/* Stars in background */}
       <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={1} />
