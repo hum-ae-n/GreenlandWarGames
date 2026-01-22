@@ -61,7 +61,7 @@ function App() {
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [mapSize, setMapSize] = useState({ width: 600, height: 600 });
   const [rightPanelMode, setRightPanelMode] = useState<RightPanelMode>('actions');
-  const [mapMode, setMapMode] = useState<MapMode>('world');
+  const [mapMode, setMapMode] = useState<MapMode>('2d');
   const [showLeaderDialog, setShowLeaderDialog] = useState<{
     leaderId: LeaderId;
     context: string;
