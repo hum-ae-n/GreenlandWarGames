@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Polygon, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+// CSS is imported globally in main.tsx to prevent mount/unmount issues
 import { GameState, MapZone, FactionId } from '../types/game';
 
 interface ArcticMapLeafletProps {
@@ -162,10 +162,25 @@ const MapResizer: React.FC<{ width: number; height: number }> = ({ width, height
   const map = useMap();
   const prevSize = useRef({ width, height });
 
+  // Force map to recalculate on mount - critical for Netlify
+  useEffect(() => {
+    // Multiple invalidations to ensure proper rendering
+    const timers = [
+      setTimeout(() => map.invalidateSize(), 0),
+      setTimeout(() => map.invalidateSize(), 100),
+      setTimeout(() => map.invalidateSize(), 300),
+    ];
+    return () => timers.forEach(t => clearTimeout(t));
+  }, [map]);
+
   useEffect(() => {
     if (prevSize.current.width !== width || prevSize.current.height !== height) {
-      map.invalidateSize();
-      prevSize.current = { width, height };
+      // Debounce resize to avoid excessive redraws
+      const timer = setTimeout(() => {
+        map.invalidateSize();
+        prevSize.current = { width, height };
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [map, width, height]);
 
@@ -256,10 +271,15 @@ export const ArcticMapLeaflet: React.FC<ArcticMapLeafletProps> = ({
   const arcticCenter: [number, number] = [75, 0];
   const defaultZoom = 2;
 
+  // Use explicit pixel dimensions to ensure Leaflet initializes correctly
+  const containerHeight = height > 0 ? height : 500;
+  const containerWidth = width > 0 ? width : '100%';
+
   return (
     <div style={{
-      width: '100%',
-      height: '100%',
+      width: containerWidth,
+      height: containerHeight,
+      minHeight: '400px',
       borderRadius: '8px',
       overflow: 'hidden',
       background: '#0a1628',
