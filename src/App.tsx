@@ -1073,7 +1073,7 @@ function App() {
         </aside>
 
         <section className="center-panel">
-          {/* Action Bar - shows at top when zone is selected */}
+          {/* Zone Info Bar - shows at top when zone is selected */}
           {selectedZoneData && (
             <div className="top-action-bar">
               <div className="action-bar-header">
@@ -1093,14 +1093,6 @@ function App() {
               </div>
               <div className="action-bar-content">
                 <ZoneDetail zone={selectedZoneData} gameState={gameState} onAction={handleZoneAction} />
-                <div className="action-bar-actions">
-                  <ActionPanel
-                    gameState={gameState}
-                    selectedZone={selectedZone}
-                    onExecuteAction={handleExecuteAction}
-                    onEndTurn={handleEndTurn}
-                  />
-                </div>
               </div>
             </div>
           )}
@@ -1227,7 +1219,7 @@ function App() {
               className={`panel-tab ${rightPanelMode === 'actions' ? 'active' : ''}`}
               onClick={() => setRightPanelMode('actions')}
             >
-              Events
+              Actions
             </button>
             <button
               className={`panel-tab ${rightPanelMode === 'military' ? 'active' : ''}`}
@@ -1238,7 +1230,15 @@ function App() {
           </div>
 
           {rightPanelMode === 'actions' ? (
-            <EventLog gameState={gameState} />
+            <>
+              <ActionPanel
+                gameState={gameState}
+                selectedZone={selectedZone}
+                onExecuteAction={handleExecuteAction}
+                onEndTurn={handleEndTurn}
+              />
+              <EventLog gameState={gameState} />
+            </>
           ) : (
             <MilitaryPanel
               gameState={gameState}

@@ -244,8 +244,8 @@ const ZonePolygon: React.FC<{
     : FACTION_COLORS.unclaimed;
 
   const flag = zone.controller
-    ? FACTION_FLAGS[zone.controller as FactionId]
-    : FACTION_FLAGS.unclaimed;
+    ? (FACTION_FLAGS[zone.controller as FactionId] || '❄️')
+    : '❄️';
 
   return (
     <Polygon
@@ -267,39 +267,11 @@ const ZonePolygon: React.FC<{
         },
       }}
     >
-      <Tooltip permanent direction="center" className="zone-tooltip">
-        <div style={{
-          textAlign: 'center',
-          fontFamily: 'monospace',
-          fontSize: '11px',
-          lineHeight: 1.2,
-        }}>
-          <div style={{ fontSize: '16px' }}>{flag}</div>
-          <div style={{
-            fontWeight: 'bold',
-            color: '#fff',
-            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-            maxWidth: '80px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
-            {zone.name.length > 12 ? zone.name.slice(0, 10) + '...' : zone.name}
-          </div>
-          <div style={{
-            fontSize: '9px',
-            color: '#ccc',
-            textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-          }}>
-            {zone.controller?.toUpperCase() || '---'}
-          </div>
-          {(zone.resources.oil > 5 || zone.resources.gas > 5) && (
-            <div style={{ fontSize: '9px' }}>
-              {zone.resources.oil > 5 && '🛢️'}
-              {zone.resources.gas > 5 && '⛽'}
-            </div>
-          )}
-        </div>
+      {/* Simple hover tooltip instead of permanent - more compatible with v5 */}
+      <Tooltip direction="top" className="zone-tooltip">
+        <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>
+          {flag} {zone.name} ({zone.controller?.toUpperCase() || 'UNCLAIMED'})
+        </span>
       </Tooltip>
     </Polygon>
   );
