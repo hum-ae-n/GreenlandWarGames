@@ -518,7 +518,16 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
 
   // Get suggested actions for this zone
   const getSuggestedActions = () => {
-    const actions: { id: string; label: string; icon: string; description: string; type: 'diplomatic' | 'economic' | 'military' | 'covert' }[] = [];
+    const playerResources = gameState.factions[gameState.playerFaction].resources;
+    const actions: {
+      id: string;
+      label: string;
+      icon: string;
+      description: string;
+      type: 'diplomatic' | 'economic' | 'military' | 'covert';
+      cost?: { influence?: number; economy?: number };
+      canAfford: boolean;
+    }[] = [];
 
     if (isUnclaimed) {
       actions.push({
@@ -527,6 +536,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
         icon: '🚩',
         description: 'Assert sovereignty over this zone',
         type: 'diplomatic',
+        cost: { influence: 25 },
+        canAfford: playerResources.influencePoints >= 25,
       });
       actions.push({
         id: 'explore',
@@ -534,6 +545,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
         icon: '🔍',
         description: 'Survey for undiscovered resources',
         type: 'economic',
+        cost: { economy: 20 },
+        canAfford: playerResources.economicOutput >= 20,
       });
     } else if (isPlayerControlled) {
       actions.push({
@@ -542,6 +555,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
         icon: '🏰',
         description: 'Strengthen defenses in this zone',
         type: 'military',
+        cost: { economy: 30 },
+        canAfford: playerResources.economicOutput >= 30,
       });
       actions.push({
         id: 'extract',
@@ -549,6 +564,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
         icon: '⛏️',
         description: 'Boost resource extraction',
         type: 'economic',
+        canAfford: true, // Free action
       });
       if (zone.type === 'chokepoint') {
         actions.push({
@@ -557,6 +573,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
           icon: '🚢',
           description: 'Collect tolls from shipping traffic',
           type: 'economic',
+          canAfford: true, // Free action
         });
       }
     } else {
@@ -568,6 +585,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
           icon: '🤝',
           description: 'Request shared access diplomatically',
           type: 'diplomatic',
+          cost: { influence: 15 },
+          canAfford: playerResources.influencePoints >= 15,
         });
         actions.push({
           id: 'invest',
@@ -575,6 +594,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
           icon: '💼',
           description: 'Propose joint resource development',
           type: 'economic',
+          cost: { economy: 40 },
+          canAfford: playerResources.economicOutput >= 40,
         });
       }
       if (tensionWithController === 'confrontation' || tensionWithController === 'crisis') {
@@ -584,6 +605,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
           icon: '💪',
           description: 'Economic and diplomatic pressure',
           type: 'diplomatic',
+          cost: { influence: 20 },
+          canAfford: playerResources.influencePoints >= 20,
         });
         actions.push({
           id: 'patrol',
@@ -591,6 +614,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
           icon: '⚓',
           description: 'Assert navigation rights',
           type: 'military',
+          cost: { economy: 15 },
+          canAfford: playerResources.economicOutput >= 15,
         });
       }
       if (tensionWithController === 'crisis' || tensionWithController === 'conflict') {
@@ -600,6 +625,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
           icon: '🚫',
           description: 'Block shipping to this zone',
           type: 'military',
+          cost: { economy: 35 },
+          canAfford: playerResources.economicOutput >= 35,
         });
         actions.push({
           id: 'attack',
@@ -607,6 +634,7 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
           icon: '⚔️',
           description: 'Launch attack to seize zone',
           type: 'military',
+          canAfford: true, // Redirects to military panel
         });
       }
       actions.push({
@@ -615,6 +643,8 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
         icon: '🕵️',
         description: 'Covert reconnaissance',
         type: 'covert',
+        cost: { influence: 10 },
+        canAfford: playerResources.influencePoints >= 10,
       });
     }
 
@@ -684,17 +714,30 @@ export const ZoneDetail: React.FC<ZoneDetailProps> = ({ zone, gameState, onActio
       <div className="zone-actions">
         <h4>Available Actions</h4>
         <div className="action-buttons">
-          {suggestedActions.map(action => (
-            <button
-              key={action.id}
-              className={`zone-action-btn ${action.type}`}
-              onClick={() => onAction?.(action.id, zone.id)}
-              title={action.description}
-            >
-              <span className="action-icon">{action.icon}</span>
-              <span className="action-label">{action.label}</span>
-            </button>
-          ))}
+          {suggestedActions.map(action => {
+            const costText = action.cost
+              ? action.cost.influence
+                ? `${action.cost.influence} 🌐`
+                : `${action.cost.economy} 💰`
+              : 'Free';
+            const tooltipText = action.canAfford
+              ? `${action.description} (Cost: ${costText})`
+              : `Need ${costText} - you don't have enough!`;
+
+            return (
+              <button
+                key={action.id}
+                className={`zone-action-btn ${action.type} ${!action.canAfford ? 'disabled' : ''}`}
+                onClick={() => action.canAfford && onAction?.(action.id, zone.id)}
+                title={tooltipText}
+                disabled={!action.canAfford}
+              >
+                <span className="action-icon">{action.icon}</span>
+                <span className="action-label">{action.label}</span>
+                <span className="action-cost">{costText}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
