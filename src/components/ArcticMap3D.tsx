@@ -1,4 +1,4 @@
-import { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Html, Float, Stars } from '@react-three/drei';
 import * as THREE from 'three';
@@ -575,7 +575,7 @@ const CameraController: React.FC = () => {
   const { camera } = useThree();
 
   // Initial camera position
-  useMemo(() => {
+  useEffect(() => {
     camera.position.set(3, 4, 5);
     camera.lookAt(0, 0, 0);
   }, [camera]);
@@ -732,7 +732,7 @@ const ArcticScene: React.FC<{
           const angle = (idx / units.length) * Math.PI * 2;
           const position: [number, number, number] = [
             basePosition[0] + Math.cos(angle) * 0.2,
-            basePosition[1] + 0.15 + (unit.type === 'submarine' ? -0.1 : 0) + (unit.type.includes('fighter') || unit.type.includes('bomber') ? 0.3 : 0),
+            basePosition[1] + 0.15 + (unit.type === 'submarine' ? -0.1 : 0) + ((unit.type && (unit.type.includes('fighter') || unit.type.includes('bomber'))) ? 0.3 : 0),
             basePosition[2] + Math.sin(angle) * 0.2,
           ];
 
